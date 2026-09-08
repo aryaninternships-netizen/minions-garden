@@ -93,6 +93,12 @@
   .chips button:hover { background: var(--glass-hi); }
   .chips button.on { background: rgba(255,255,255,.92); color: #14161c; }
 
+  #handCursor { position: absolute; width: 26px; height: 26px; display: none;
+    border: 2.5px solid #f7c826; border-radius: 50%; margin: -13px 0 0 -13px;
+    box-shadow: 0 0 14px rgba(247,200,38,.65), inset 0 0 8px rgba(247,200,38,.4);
+    transition: transform .12s; pointer-events: none; z-index: 12; }
+  #handCursor.pinch { transform: scale(.55); background: rgba(247,200,38,.5); }
+
   #handPanel { position: absolute; right: 24px; bottom: 22px; width: 200px;
     display: none; border-radius: 12px; overflow: hidden;
     background: rgba(16,18,26,.72); backdrop-filter: blur(6px);
@@ -156,6 +162,7 @@
   </div>
   <div id="hint">pluck any flower you like</div>
   <div id="fps">– fps</div>
+  <div id="handCursor"></div>
   <div id="handPanel" class="panel">
     <video id="handVideo" playsinline muted></video>
     <canvas id="handCanvas" width="200" height="150"></canvas>
@@ -2312,6 +2319,7 @@ const hand = {
   lm: null, video: null, canvas: null, ctx: null,
   vx: 0, vy: 0, vz: 0, vyaw: 0, vpitch: 0,     // smoothed intents
   anchor: null, twoAnchor: 0, lastT: 0, seen: 0,
+  tapWas: false, tapT: 0, tapX: 0, tapY: 0,
 };
 
 window.HAND = hand;                    // debug handle: inspect gesture state
@@ -2365,7 +2373,7 @@ async function enableHands() {
     hand.ready = true;
     document.getElementById('mHands').classList.add('on');
     setMode('free');                   // hands fly the free drone
-    handHUD('pinch to steer · both hands apart to fly');
+    handHUD('point + tap-pinch to pluck · pinch-drag steers · two pinches fly · fist stops');
   } catch (err) {
     handHUD('camera blocked: ' + (err && err.name ? err.name : err));
     console.warn('hand control failed', err);
@@ -2388,9 +2396,14 @@ function readHands(t) {
     // normalise the pinch by hand size, so it works near or far from the lens
     const span = lmDist(L[0], L[9]) || 0.001;
     const pinch = lmDist(L[4], L[8]) / span;
+    // fist: the four fingertips curled onto the palm
+    const curl = (lmDist(L[8], L[0]) + lmDist(L[12], L[0]) +
+                  lmDist(L[16], L[0]) + lmDist(L[20], L[0])) / (4 * span);
     return {
       pinch, pinched: pinch < 0.55,
+      fist: curl < 1.15 && pinch > 0.5,
       x: L[9].x, y: L[9].y,            // middle-finger knuckle = palm centre
+      ix: L[8].x, iy: L[8].y,          // index fingertip = pointer
       L,
     };
   });
@@ -2424,12 +2437,47 @@ function updateHandControl(t, dt) {
   const pinched = hands ? hands.filter(h => h.pinched) : [];
 
   let wantYaw = 0, wantPitch = 0, wantUp = 0, wantFwd = 0;
+  const cursorEl = document.getElementById('handCursor');
+  const anyFist = hands && hands.some(h => h.fist);
 
-  if (pinched.length >= 2) {
+  // fingertip cursor: the first tracked hand points; pinch-TAP plucks
+  if (hands && hands.length && !anyFist) {
+    const h0 = hands[0];
+    const sx = (1 - h0.ix) * innerWidth, sy = h0.iy * innerHeight;
+    cursorEl.style.display = 'block';
+    cursorEl.style.left = sx + 'px';
+    cursorEl.style.top = sy + 'px';
+    cursorEl.classList.toggle('pinch', h0.pinched);
+    if (h0.pinched && !hand.tapWas) {
+      hand.tapT = t; hand.tapX = h0.ix; hand.tapY = h0.iy;
+    }
+    if (!h0.pinched && hand.tapWas) {
+      const held = t - hand.tapT;
+      const drift = Math.hypot(h0.ix - hand.tapX, h0.iy - hand.tapY);
+      if (held < 0.30 && drift < 0.035) {       // a quick clean tap
+        if (pluckAtNDC((1 - h0.ix) * 2 - 1, -(h0.iy * 2 - 1)))
+          handHUD('plucked!');
+        hand.anchor = null;                     // do not also steer
+      }
+    }
+    hand.tapWas = h0.pinched;
+  } else {
+    cursorEl.style.display = 'none';
+    hand.tapWas = false;
+  }
+
+  if (anyFist) {
+    // closed fist: hard brake
+    hand.vx = hand.vy = hand.vz = hand.vyaw = 0;
+    hand.anchor = null; hand.twoAnchor = 0;
+    handHUD('fist: hold position');
+  } else if (pinched.length >= 2) {
     // two pinches: the gap between them is a throttle
     const d = Math.hypot(pinched[0].x - pinched[1].x, pinched[0].y - pinched[1].y);
     if (!hand.twoAnchor) hand.twoAnchor = d;
-    wantFwd = THREE.MathUtils.clamp((d - hand.twoAnchor) * 6, -1, 1);
+    let th = d - hand.twoAnchor;
+    th = Math.abs(th) < 0.03 ? 0 : th - Math.sign(th) * 0.03;
+    wantFwd = THREE.MathUtils.clamp(th * Math.abs(th) * 55, -1, 1);
     hand.anchor = null;
     handHUD(wantFwd > 0.05 ? 'flying forward' :
             wantFwd < -0.05 ? 'backing up' : 'hold… spread to fly');
@@ -2437,16 +2485,18 @@ function updateHandControl(t, dt) {
     // one pinch: grab the air, drag to steer
     const h = pinched[0];
     if (!hand.anchor) hand.anchor = { x: h.x, y: h.y };
-    const dx = h.x - hand.anchor.x;      // camera is mirrored, so +x = right
-    const dy = h.y - hand.anchor.y;
-    wantYaw = THREE.MathUtils.clamp(dx * 3.2, -1, 1);
-    wantUp = THREE.MathUtils.clamp(-dy * 3.2, -1, 1);
+    const dz = v => Math.abs(v) < 0.022 ? 0 : v - Math.sign(v) * 0.022;
+    const dx = dz(h.x - hand.anchor.x);  // camera is mirrored, so +x = right
+    const dy = dz(h.y - hand.anchor.y);
+    // expo curve: fine control near the anchor, authority further out
+    wantYaw = THREE.MathUtils.clamp(dx * Math.abs(dx) * 14, -1, 1);
+    wantUp = THREE.MathUtils.clamp(-dy * Math.abs(dy) * 14, -1, 1);
     hand.twoAnchor = 0;
     handHUD('steering — release to stop');
   } else {
     hand.anchor = null;
     hand.twoAnchor = 0;
-    if (hand.seen) handHUD('pinch to steer · both hands apart to fly');
+    if (hand.seen) handHUD('point + tap-pinch to pluck · pinch-drag steers · two pinches fly · fist stops');
     else handHUD('show me your hands');
   }
 
@@ -2623,10 +2673,8 @@ const ray = new THREE.Raycaster();
 const picked = []; // colors
 const flyers = []; // plucked tulip flying to camera
 
-renderer.domElement.addEventListener('click', e => {
-  if (moved > 6) return; // was a drag
-  const m = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1,
-                              -(e.clientY / innerHeight) * 2 + 1);
+function pluckAtNDC(nx, ny) {
+  const m = new THREE.Vector2(nx, ny);
   ray.setFromCamera(m, camera);
   // forgiving pick: nearest unplucked tulip head to the click ray
   const maxDist = mode === 'walk' ? 30 : 500;
@@ -2646,7 +2694,7 @@ renderer.domElement.addEventListener('click', e => {
       best = td; bestI = i;
     }
   }
-  if (!best) return;
+  if (!best) return false;
   const d = best;
   d.plucked = true;
   setTulipMatrix(bestI);
@@ -2662,6 +2710,12 @@ renderer.domElement.addEventListener('click', e => {
   grp.scale.setScalar(d.scale);
   scene.add(grp);
   flyers.push({ grp, t: 0, from: grp.position.clone(), color: d.color });
+  return true;
+}
+renderer.domElement.addEventListener('click', e => {
+  if (moved > 6) return; // was a drag
+  pluckAtNDC((e.clientX / innerWidth) * 2 - 1,
+             -(e.clientY / innerHeight) * 2 + 1);
 });
 
 function updateFlyers(dt) {
