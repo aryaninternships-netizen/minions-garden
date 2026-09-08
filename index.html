@@ -1765,7 +1765,8 @@ function whorl(G, k, opts) {
         const yy = y + cup * Math.abs(v) * w + tilt * v * w;
         G.pos.push(ca * r - sa * lat, yy, sa * r + ca * lat);
         const m = shade0 + (1 - shade0) * Math.min(u * 1.5, 1);
-        G.col.push(m, m, m);
+        if (opts.rgb) G.col.push(m * opts.rgb[0], m * opts.rgb[1], m * opts.rgb[2]);
+        else G.col.push(m, m, m);
       }
     }
     for (let iu = 0; iu < NU; iu++)
@@ -1891,25 +1892,47 @@ function lilyG() {                     // trumpet, recurved tips, stamens
   }
   return bake(G);
 }
-function sunflowerG() {                // dark disc + yellow rays, baked yellow
+function sunflowerG() {
+  // Real anatomy: two offset rows of overlapping oval ray florets (not
+  // triangles), a domed disc with concentric floret rings — open orange
+  // florets at the rim, tight dark centre — and green bracts behind.
   const G = newG();
-  const D = newG();
-  disc(D, 0.02, 0.42, 14, 0.10, [0.26, 0.16, 0.07], [0.36, 0.24, 0.10]);
-  // rays keep their own yellow, instance tint stays near-white
-  for (let i = 0; i < D.col.length; i += 3) {} // disc colors done
-  G.pos.push(...D.pos); G.col.push(...D.col); 
-  for (const ix of D.idx) G.idx.push(ix);
-  G.base = D.base;
-  const rays = 18;
-  for (let p = 0; p < rays; p++) {
-    const az = (p / rays) * Math.PI * 2, ca = Math.cos(az), sa = Math.sin(az);
-    const s2 = G.base, L = 0.55, W = 0.10;
-    G.pos.push(ca * 0.36 - sa * W, 0.02, sa * 0.36 + ca * W,
-               ca * 0.36 + sa * W, 0.02, sa * 0.36 - ca * W,
-               ca * (0.36 + L), 0.10, sa * (0.36 + L));
-    for (let q = 0; q < 3; q++) G.col.push(0.98, 0.78, 0.12);
-    G.idx.push(s2, s2 + 1, s2 + 2);
-    G.base += 3;
+  // bracts peeking between the petals
+  whorl(G, 12, { len: 0.40, halfW: 0.08, spread: 97, curl: 0.04, y0: -0.02,
+                 shade0: 0.6, rgb: [0.30, 0.48, 0.22], NU: 2, NV: 2 });
+  // ray florets: SHORT, WIDE, tightly overlapping — the disc is roughly half
+  // the head's diameter on a real sunflower, and the petals are ovals, not
+  // needles. Two offset rows give the dense fringe.
+  whorl(G, 22, { len: 0.46, halfW: 0.155, spread: 90, curl: -0.05, cup: 0.03,
+                 y0: 0.015, shade0: 0.72, rgb: [1.0, 0.80, 0.16], NU: 3, NV: 2 });
+  whorl(G, 18, { len: 0.38, halfW: 0.135, spread: 82, curl: -0.03, cup: 0.03,
+                 y0: 0.035, az0: 0.143, shade0: 0.78,
+                 rgb: [1.0, 0.73, 0.12], NU: 3, NV: 2 });
+  // disc: dome in three floret rings
+  {
+    const seg = 18, start = G.base;
+    const RING = [
+      [0.00, 0.14, [0.16, 0.10, 0.05]],   // tight dark centre
+      [0.16, 0.11, [0.28, 0.17, 0.07]],
+      [0.30, 0.06, [0.48, 0.27, 0.09]],   // opening florets
+      [0.40, 0.02, [0.72, 0.42, 0.10]],   // pollen rim, orange
+    ];
+    G.pos.push(0, 0.17, 0); G.col.push(0.13, 0.08, 0.04);
+    for (const [rr, dy, c] of RING)
+      for (let i = 0; i <= seg; i++) {
+        const a = (i / seg) * Math.PI * 2;
+        // faint spiral texture: alternate florets a shade darker
+        const k = (i % 2 ? 0.88 : 1.06);
+        G.pos.push(Math.cos(a) * rr, 0.04 + dy, Math.sin(a) * rr);
+        G.col.push(c[0] * k, c[1] * k, c[2] * k);
+      }
+    for (let i = 0; i < seg; i++) G.idx.push(start, start + 1 + i, start + 2 + i);
+    for (let ringI = 0; ringI < RING.length - 1; ringI++)
+      for (let i = 0; i < seg; i++) {
+        const a = start + 1 + ringI * (seg + 1) + i, b = a + seg + 1;
+        G.idx.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
   g.rotateX(-1.05);                    // face outward, tilted up
