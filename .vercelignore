@@ -1,0 +1,3 @@
+# generators are build-time tools, not part of the site
+*.py
+.claude/

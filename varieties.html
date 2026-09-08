@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tulipa · All Kinds of Tulips</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf6ef; --ink: #2b2320; --muted: #7a6f66;
+    --accent: #c22a2a; --card: #ffffff;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink);
+         font-family: Inter, system-ui, sans-serif; }
+  h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; }
+
+  header { text-align: center; padding: 64px 20px 0; }
+  header h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin-top: 12px; font-size: 1.1rem; }
+
+  #field { width: 100%; max-width: 1200px; margin: 0 auto; display: block;
+           border-bottom: 3px solid #4a7a44; }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 56px 20px 80px; }
+  main h2 { font-size: 2rem; text-align: center; margin-bottom: 8px; }
+  main > p { text-align: center; color: var(--muted); margin-bottom: 40px; }
+
+  .grid { display: grid; gap: 24px;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { background: var(--card); border-radius: 16px; padding: 24px;
+          box-shadow: 0 2px 12px rgba(43,35,32,.08); text-align: center;
+          transition: transform .2s; }
+  .card:hover { transform: translateY(-4px); }
+  .card .anim { height: 220px; }
+  .card h3 { font-size: 1.3rem; margin-top: 8px; }
+  .card em { display: block; color: var(--accent); font-style: italic;
+             font-size: .85rem; margin-top: 2px; }
+  .card p { color: var(--muted); font-size: .92rem; margin-top: 10px;
+            line-height: 1.5; }
+
+  footer { text-align: center; color: var(--muted); padding: 32px;
+           font-size: .85rem; border-top: 1px solid #e7ded2; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tulipa</h1>
+  <p>Just tulips. All kinds of tulips.</p>
+</header>
+
+<div id="field"></div>
+
+<main>
+  <h2>The Collection</h2>
+  <p>Six classics from a family of over 3,000 cultivars.</p>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>Grown from pure code · no tulips were harmed</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+<script>
+  lottie.loadAnimation({ container: document.getElementById('field'),
+    renderer: 'svg', loop: true, autoplay: true, path: 'assets/field.json' });
+
+  const varieties = [
+    ['triumph_red', 'Triumph', 'Tulipa × triumph',
+     'The workhorse of Dutch fields. Classic cup, sturdy stem, blooms mid-spring.'],
+    ['darwin_orange', 'Darwin Hybrid', 'Tulipa × darwin',
+     'Tallest of the bunch. Huge blooms that come back year after year.'],
+    ['queen_of_night', 'Queen of Night', 'Tulipa "Queen of Night"',
+     'The famous "black" tulip. Deep maroon velvet, late-season drama.'],
+    ['parrot_purple', 'Parrot', 'Tulipa × parrot',
+     'Feathered, twisted, flamboyant petals. Named for a reason.'],
+    ['fringed_pink', 'Fringed', 'Tulipa crispa',
+     'Crystal-cut fringes on every petal edge, like frost in pink.'],
+    ['white_emperor', 'White Emperor', 'Tulipa fosteriana',
+     'Pure ivory, opens flat in sunshine. An early-spring beacon.'],
+  ];
+
+  const grid = document.getElementById('grid');
+  for (const [file, name, latin, blurb] of varieties) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="anim"></div><h3>${name}</h3><em>${latin}</em><p>${blurb}</p>`;
+    grid.appendChild(card);
+    lottie.loadAnimation({ container: card.querySelector('.anim'),
+      renderer: 'svg', loop: true, autoplay: true, path: `assets/${file}.json` });
+  }
+</script>
+</body>
+</html>
