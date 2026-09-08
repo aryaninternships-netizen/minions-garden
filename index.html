@@ -1898,24 +1898,24 @@ function sunflowerG() {
   // florets at the rim, tight dark centre — and green bracts behind.
   const G = newG();
   // bracts peeking between the petals
-  whorl(G, 12, { len: 0.40, halfW: 0.08, spread: 97, curl: 0.04, y0: -0.02,
-                 shade0: 0.6, rgb: [0.30, 0.48, 0.22], NU: 2, NV: 2 });
+  whorl(G, 12, { len: 0.22, halfW: 0.09, spread: 118, curl: 0.02, y0: -0.03,
+                 shade0: 0.7, rgb: [0.22, 0.36, 0.16], NU: 2, NV: 2 });
   // ray florets: SHORT, WIDE, tightly overlapping — the disc is roughly half
   // the head's diameter on a real sunflower, and the petals are ovals, not
   // needles. Two offset rows give the dense fringe.
-  whorl(G, 22, { len: 0.46, halfW: 0.155, spread: 90, curl: -0.05, cup: 0.03,
-                 y0: 0.015, shade0: 0.72, rgb: [1.0, 0.80, 0.16], NU: 3, NV: 2 });
-  whorl(G, 18, { len: 0.38, halfW: 0.135, spread: 82, curl: -0.03, cup: 0.03,
-                 y0: 0.035, az0: 0.143, shade0: 0.78,
-                 rgb: [1.0, 0.73, 0.12], NU: 3, NV: 2 });
+  whorl(G, 24, { len: 0.52, halfW: 0.125, spread: 91, curl: -0.04, cup: 0.02,
+                 y0: 0.015, shade0: 0.88, rgb: [1.0, 0.82, 0.10], NU: 3, NV: 2 });
+  whorl(G, 19, { len: 0.42, halfW: 0.105, spread: 84, curl: -0.02, cup: 0.02,
+                 y0: 0.035, az0: 0.131, shade0: 0.90,
+                 rgb: [0.99, 0.72, 0.06], NU: 3, NV: 2 });
   // disc: dome in three floret rings
   {
     const seg = 18, start = G.base;
     const RING = [
-      [0.00, 0.14, [0.16, 0.10, 0.05]],   // tight dark centre
-      [0.16, 0.11, [0.28, 0.17, 0.07]],
-      [0.30, 0.06, [0.48, 0.27, 0.09]],   // opening florets
-      [0.40, 0.02, [0.72, 0.42, 0.10]],   // pollen rim, orange
+      [0.00, 0.15, [0.20, 0.13, 0.06]],   // tight dark centre
+      [0.18, 0.12, [0.33, 0.20, 0.08]],
+      [0.33, 0.07, [0.55, 0.35, 0.10]],   // opening florets
+      [0.45, 0.02, [0.85, 0.60, 0.12]],   // pollen-dusted rim
     ];
     G.pos.push(0, 0.17, 0); G.col.push(0.13, 0.08, 0.04);
     for (const [rr, dy, c] of RING)
@@ -1935,7 +1935,7 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.rotateX(-1.05);                    // face outward, tilted up
+  g.rotateX(-1.32);                    // near-horizontal, like a real field
   g.translate(0, 0.15, 0);
   return g;
 }
@@ -2696,7 +2696,7 @@ function addToBasket(color) {
   const st = document.getElementById('stems');
   if (picked.length <= 12) st.insertAdjacentHTML('beforeend', tulipSVG(color));
   document.getElementById('count').textContent =
-    `${picked.length} tulip${picked.length > 1 ? 's' : ''} picked`;
+    `${picked.length} flower${picked.length > 1 ? 's' : ''} picked`;
   document.getElementById('bouquetBtn').style.display =
     picked.length >= 5 ? 'inline-block' : 'none';
 }
