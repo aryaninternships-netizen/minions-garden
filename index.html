@@ -105,7 +105,12 @@
     box-shadow: 0 6px 24px rgba(0,0,0,.35); }
   #handPanel video { width: 200px; height: 150px; object-fit: cover;
     transform: scaleX(-1); display: block; opacity: .55; }
-  #handPanel canvas { position: absolute; left: 0; top: 0; }
+  #handGesture { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 999px;
+  font: 600 .62rem Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase;
+  background: rgba(0,0,0,.55); color: #cfe6ff; pointer-events: none; }
+#handGesture.g-grab { color: #ffd166; } #handGesture.g-wheel { color: #ffd166; }
+#handGesture.g-brake { color: #ff6b6b; } #handGesture.g-turbo { color: #7dff9a; }
+#handPanel canvas { position: absolute; left: 0; top: 0; }
   #handMsg { padding: 6px 9px; font: 500 .68rem Inter, sans-serif;
     color: #dfe6f2; text-align: center; }
 
@@ -166,7 +171,8 @@
   <div id="handPanel" class="panel">
     <video id="handVideo" playsinline muted></video>
     <canvas id="handCanvas" width="200" height="150"></canvas>
-    <div id="handMsg">starting…</div>
+    <div id="handGesture" class="g-none">none</div>
+<div id="handMsg">starting…</div>
   </div>
   <div id="basket" class="panel">
     <div id="stems"></div>
@@ -1314,7 +1320,7 @@ function windTree(mat) {
     for (let i = 0; i < p.count; i++) {
       const x = p.getX(i), z = p.getZ(i);
       const r = Math.hypot(x, z);
-      const rr = (r - INNER) / (OUTER - INNER);       // 0 inner → 1 outer
+      const rr = Math.max(0, (r - INNER) / (OUTER - INNER));  // 0 inner → 1 outer (float error can dip below 0 → pow NaN)
       // envelope: rise from valley floor, peak band ~0.45-0.8, ease at rim
       // long gentle ramp: foothills near the field, big peaks far back
       const env = Math.pow(Math.min(rr / 0.62, 1), 2.1) *
@@ -2305,28 +2311,65 @@ function updateGirl(t, dt, moving) {
   girl.rotation.y = yaw + Math.PI;   // faces walking direction
 }
 
-// ---------- hand control: fly the garden with your hands ----------
-// MediaPipe HandLandmarker on the webcam. Gestures:
-//   * PINCH one hand and move it  -> grab the air and steer: left/right turns,
-//     up/down changes altitude (like dragging the world past you)
-//   * PINCH BOTH hands and pull them APART -> fly forward; bring them
-//     together -> fly back. It reads like pulling yourself along a rope.
-//   * OPEN PALM -> let go, glide to a stop
-// Everything is velocity-based and smoothed, because raw landmark positions
-// jitter by a few pixels every frame.
+// ---------- hand control v3: fly the garden with your hands ----------
+// MediaPipe HandLandmarker on the webcam. Gesture vocabulary:
+//   * POINT + TAP-PINCH          -> pluck the flower under the fingertip ring
+//   * PINCH one hand, DRAG        -> steer: left/right yaws, up/down climbs
+//   * PINCH one hand, PUSH / PULL -> fly forward / back (hand size = depth)
+//   * PINCH one hand, ROLL wrist  -> banked turn (like tilting a joystick)
+//   * PINCH BOTH, spread / close  -> throttle forward / back
+//   * PINCH BOTH, rotate the pair -> steering wheel yaw
+//   * PINCH BOTH, lift / lower    -> look up / down
+//   * THUMBS UP                   -> turbo (2.4x) while held
+//   * FIST                        -> hard brake
+//   * OPEN PALM                   -> let go, glide to a stop
+// Landmarks jitter by a few pixels every frame, so every channel goes through
+// a One Euro filter (Casiez 2012): heavy smoothing when still, light when
+// moving fast, so there's no lag on real gestures and no shake at rest.
+class OneEuro {
+  constructor(minCut = 1.2, beta = 0.02, dCut = 1.0) {
+    this.mc = minCut; this.beta = beta; this.dc = dCut;
+    this.x = null; this.dx = 0; this.t = 0;
+  }
+  static alpha(cut, dt) { const tau = 1 / (2 * Math.PI * cut); return 1 / (1 + tau / dt); }
+  filter(v, t) {
+    if (this.x === null) { this.x = v; this.t = t; return v; }
+    const dt = Math.max(t - this.t, 1e-3); this.t = t;
+    const dxRaw = (v - this.x) / dt;
+    const ad = OneEuro.alpha(this.dc, dt);
+    this.dx += (dxRaw - this.dx) * ad;
+    const cut = this.mc + this.beta * Math.abs(this.dx);
+    const a = OneEuro.alpha(cut, dt);
+    this.x += (v - this.x) * a;
+    return this.x;
+  }
+  reset() { this.x = null; this.dx = 0; }
+}
+
 const hand = {
   on: false, ready: false, loading: false,
   lm: null, video: null, canvas: null, ctx: null,
-  vx: 0, vy: 0, vz: 0, vyaw: 0, vpitch: 0,     // smoothed intents
-  anchor: null, twoAnchor: 0, lastT: 0, seen: 0,
+  vx: 0, vy: 0, vz: 0, vyaw: 0, vpitch: 0, bank: 0, turbo: 0,  // smoothed intents
+  anchor: null, twoAnchor: null, lastT: 0, seen: 0,
   tapWas: false, tapT: 0, tapX: 0, tapY: 0,
+  filters: [{}, {}],                 // per hand slot, per channel One Euro
+  gesture: 'none',
 };
 
 window.HAND = hand;                    // debug handle: inspect gesture state
+window.updateHandControl = (t, dt) => updateHandControl(t, dt);
 
 function handHUD(msg) {
   const el = document.getElementById('handMsg');
   if (el) el.textContent = msg;
+}
+function handBadge(name) {
+  if (hand.gesture === name) return;
+  hand.gesture = name;
+  const el = document.getElementById('handGesture');
+  if (!el) return;
+  el.textContent = name;
+  el.className = 'g-' + name.replace(/\s+/g, '-');
 }
 
 async function enableHands() {
@@ -2334,11 +2377,13 @@ async function enableHands() {
   if (hand.on) {                       // toggle off
     hand.on = false;
     document.getElementById('handPanel').style.display = 'none';
+    document.getElementById('handCursor').style.display = 'none';
     document.getElementById('mHands').classList.remove('on');
     if (hand.video && hand.video.srcObject) {
       hand.video.srcObject.getTracks().forEach(t => t.stop());
       hand.video.srcObject = null;
     }
+    hand.bank = 0; hand.turbo = 0;
     return;
   }
   hand.loading = true;
@@ -2373,7 +2418,7 @@ async function enableHands() {
     hand.ready = true;
     document.getElementById('mHands').classList.add('on');
     setMode('free');                   // hands fly the free drone
-    handHUD('point + tap-pinch to pluck · pinch-drag steers · two pinches fly · fist stops');
+    handHUD('pinch-drag steers · push/pull flies · tap-pinch plucks · 👍 turbo · fist stops');
   } catch (err) {
     handHUD('camera blocked: ' + (err && err.name ? err.name : err));
     console.warn('hand control failed', err);
@@ -2384,26 +2429,58 @@ async function enableHands() {
 // distance between two landmarks in normalised coords
 const lmDist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+function euro(slot, key, v, t, minCut, beta, snap = 0.12) {
+  const f = hand.filters[slot];
+  if (!f[key]) f[key] = new OneEuro(minCut, beta);
+  // a jump this big is a tracking swap or a new hand, not motion: snap, don't lag
+  if (f[key].x !== null && Math.abs(v - f[key].x) > snap) f[key].reset();
+  return f[key].filter(v, t);
+}
+
 function readHands(t) {
   if (!hand.on || !hand.lm || !hand.video || hand.video.readyState < 2) return null;
   let res;
   try { res = hand.lm.detectForVideo(hand.video, t * 1000); }
   catch { return null; }
-  if (!res || !res.landmarks || !res.landmarks.length) { hand.seen = 0; return null; }
+  if (!res || !res.landmarks || !res.landmarks.length) {
+    hand.seen = 0;
+    hand.filters.forEach(f => Object.values(f).forEach(o => o.reset()));
+    if (hand.ctx) hand.ctx.clearRect(0, 0, hand.canvas.width, hand.canvas.height);
+    return null;
+  }
+  if (res.landmarks.length !== hand.seen)
+    hand.filters.forEach(f => Object.values(f).forEach(o => o.reset()));
   hand.seen = res.landmarks.length;
+  // keep slot order stable: sort by x so "left hand" stays slot 0
+  const order = res.landmarks.map((L, i) => ({ L, x: L[9].x, i }))
+    .sort((a, b) => a.x - b.x);
 
-  const hands = res.landmarks.map(L => {
+  const hands = order.map(({ L }, slot) => {
     // normalise the pinch by hand size, so it works near or far from the lens
-    const span = lmDist(L[0], L[9]) || 0.001;
-    const pinch = lmDist(L[4], L[8]) / span;
-    // fist: the four fingertips curled onto the palm
+    const spanRaw = lmDist(L[0], L[9]) || 0.001;
+    const span = euro(slot, 'span', spanRaw, t, 0.8, 0.01, 0.05);
+    const pinch = lmDist(L[4], L[8]) / spanRaw;
     const curl = (lmDist(L[8], L[0]) + lmDist(L[12], L[0]) +
-                  lmDist(L[16], L[0]) + lmDist(L[20], L[0])) / (4 * span);
+                  lmDist(L[16], L[0]) + lmDist(L[20], L[0])) / (4 * spanRaw);
+    // thumbs up: thumb tip well above the wrist, other four curled
+    const thumbUp = (L[0].y - L[4].y) / spanRaw > 0.9 && curl < 1.25 &&
+                    lmDist(L[4], L[8]) / spanRaw > 0.7;
+    // wrist roll: angle of the wrist->knuckle bone vs straight up
+    const rollRaw = Math.atan2(L[9].x - L[0].x, L[0].y - L[9].y);
+    // fist: fingers curled AND index tip folded back near its own knuckle
+    // (a pinch keeps the index extended, so thumb-tip distance can't tell them apart)
+    const indexExt = lmDist(L[8], L[0]) / (lmDist(L[5], L[0]) || 0.001);
+    const fist = curl < 1.15 && indexExt < 1.25 && !thumbUp;
     return {
-      pinch, pinched: pinch < 0.55,
-      fist: curl < 1.15 && pinch > 0.5,
-      x: L[9].x, y: L[9].y,            // middle-finger knuckle = palm centre
-      ix: L[8].x, iy: L[8].y,          // index fingertip = pointer
+      pinch, pinched: pinch < 0.55 && !fist,
+      fist,
+      thumbUp,
+      span,
+      roll: euro(slot, 'roll', rollRaw, t, 1.0, 0.05, 0.6),
+      x: euro(slot, 'x', L[9].x, t, 1.2, 0.03),      // palm centre
+      y: euro(slot, 'y', L[9].y, t, 1.2, 0.03),
+      ix: euro(slot, 'ix', L[8].x, t, 1.6, 0.06),    // index fingertip = pointer
+      iy: euro(slot, 'iy', L[8].y, t, 1.6, 0.06),
       L,
     };
   });
@@ -2411,36 +2488,45 @@ function readHands(t) {
   return hands;
 }
 
+const BONES = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],
+  [10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],
+  [19,20],[0,17]];
 function drawHands(hands) {
   const c = hand.ctx, W = hand.canvas.width, H = hand.canvas.height;
   c.clearRect(0, 0, W, H);
   for (const h of hands) {
-    c.fillStyle = h.pinched ? '#ffd166' : '#8fd3ff';
-    for (const p of h.L) {
-      c.beginPath();
-      c.arc((1 - p.x) * W, p.y * H, h.pinched ? 3.2 : 2.2, 0, 7);
-      c.fill();
-    }
-    // highlight the pinch pair
-    c.strokeStyle = h.pinched ? '#ffd166' : 'rgba(255,255,255,.35)';
-    c.lineWidth = 2;
+    const col = h.fist ? '#ff6b6b' : h.thumbUp ? '#7dff9a' :
+                h.pinched ? '#ffd166' : '#8fd3ff';
+    const P = i => [(1 - h.L[i].x) * W, h.L[i].y * H];
+    c.strokeStyle = col; c.lineWidth = 1.4; c.globalAlpha = .55;
     c.beginPath();
-    c.moveTo((1 - h.L[4].x) * W, h.L[4].y * H);
-    c.lineTo((1 - h.L[8].x) * W, h.L[8].y * H);
+    for (const [a, b] of BONES) { c.moveTo(...P(a)); c.lineTo(...P(b)); }
     c.stroke();
+    c.globalAlpha = 1; c.fillStyle = col;
+    for (let i = 0; i < 21; i++) {
+      c.beginPath(); c.arc(...P(i), i === 4 || i === 8 ? 3.4 : 2, 0, 7); c.fill();
+    }
+    // pinch pair link
+    c.strokeStyle = h.pinched ? '#ffd166' : 'rgba(255,255,255,.3)';
+    c.lineWidth = 2.2;
+    c.beginPath(); c.moveTo(...P(4)); c.lineTo(...P(8)); c.stroke();
   }
 }
+
+const expo = (v, g) => THREE.MathUtils.clamp(v * Math.abs(v) * g, -1, 1);
+const dzone = (v, z) => Math.abs(v) < z ? 0 : v - Math.sign(v) * z;
 
 function updateHandControl(t, dt) {
   if (!hand.on) return;
   const hands = readHands(t);
   const pinched = hands ? hands.filter(h => h.pinched) : [];
 
-  let wantYaw = 0, wantPitch = 0, wantUp = 0, wantFwd = 0;
+  let wantYaw = 0, wantPitch = 0, wantUp = 0, wantFwd = 0, wantBank = 0;
   const cursorEl = document.getElementById('handCursor');
   const anyFist = hands && hands.some(h => h.fist);
+  const anyThumb = hands && hands.some(h => h.thumbUp);
 
-  // fingertip cursor: the first tracked hand points; pinch-TAP plucks
+  // fingertip cursor + tap-pinch pluck (only when not gripping the world)
   if (hands && hands.length && !anyFist) {
     const h0 = hands[0];
     const sx = (1 - h0.ix) * innerWidth, sy = h0.iy * innerHeight;
@@ -2454,10 +2540,10 @@ function updateHandControl(t, dt) {
     if (!h0.pinched && hand.tapWas) {
       const held = t - hand.tapT;
       const drift = Math.hypot(h0.ix - hand.tapX, h0.iy - hand.tapY);
-      if (held < 0.30 && drift < 0.035) {       // a quick clean tap
+      if (held < 0.30 && drift < 0.035) {
         if (pluckAtNDC((1 - h0.ix) * 2 - 1, -(h0.iy * 2 - 1)))
           handHUD('plucked!');
-        hand.anchor = null;                     // do not also steer
+        hand.anchor = null;
       }
     }
     hand.tapWas = h0.pinched;
@@ -2467,53 +2553,76 @@ function updateHandControl(t, dt) {
   }
 
   if (anyFist) {
-    // closed fist: hard brake
-    hand.vx = hand.vy = hand.vz = hand.vyaw = 0;
-    hand.anchor = null; hand.twoAnchor = 0;
+    hand.vx = hand.vy = hand.vz = hand.vyaw = hand.vpitch = 0;
+    hand.anchor = null; hand.twoAnchor = null;
     handHUD('fist: hold position');
+    handBadge('brake');
   } else if (pinched.length >= 2) {
-    // two pinches: the gap between them is a throttle
-    const d = Math.hypot(pinched[0].x - pinched[1].x, pinched[0].y - pinched[1].y);
-    if (!hand.twoAnchor) hand.twoAnchor = d;
-    let th = d - hand.twoAnchor;
-    th = Math.abs(th) < 0.03 ? 0 : th - Math.sign(th) * 0.03;
-    wantFwd = THREE.MathUtils.clamp(th * Math.abs(th) * 55, -1, 1);
+    // two pinches = steering wheel + throttle
+    const a = pinched[0], b = pinched[1];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const my = (a.y + b.y) / 2;
+    if (!hand.twoAnchor) hand.twoAnchor = { d, ang, my };
+    const th = dzone(d - hand.twoAnchor.d, 0.03);
+    wantFwd = expo(th, 55);
+    let da = ang - hand.twoAnchor.ang;
+    da = Math.atan2(Math.sin(da), Math.cos(da));          // wrap
+    wantYaw = expo(dzone(-da, 0.08), 3.5);                // mirrored camera
+    wantBank = wantYaw * 0.35;
+    wantPitch = expo(dzone(-(my - hand.twoAnchor.my), 0.03), 12);
     hand.anchor = null;
     handHUD(wantFwd > 0.05 ? 'flying forward' :
-            wantFwd < -0.05 ? 'backing up' : 'hold… spread to fly');
+            wantFwd < -0.05 ? 'backing up' : 'spread to fly · rotate to turn · lift to look');
+    handBadge('wheel');
   } else if (pinched.length === 1) {
-    // one pinch: grab the air, drag to steer
+    // one pinch: grab the air. Drag steers, push/pull flies, roll banks.
     const h = pinched[0];
-    if (!hand.anchor) hand.anchor = { x: h.x, y: h.y };
-    const dz = v => Math.abs(v) < 0.022 ? 0 : v - Math.sign(v) * 0.022;
-    const dx = dz(h.x - hand.anchor.x);  // camera is mirrored, so +x = right
-    const dy = dz(h.y - hand.anchor.y);
-    // expo curve: fine control near the anchor, authority further out
-    wantYaw = THREE.MathUtils.clamp(dx * Math.abs(dx) * 14, -1, 1);
-    wantUp = THREE.MathUtils.clamp(-dy * Math.abs(dy) * 14, -1, 1);
-    hand.twoAnchor = 0;
-    handHUD('steering — release to stop');
+    if (!hand.anchor) hand.anchor = { x: h.x, y: h.y, span: h.span, roll: h.roll };
+    const dx = dzone(h.x - hand.anchor.x, 0.022);  // camera is mirrored, so +x = right
+    const dy = dzone(h.y - hand.anchor.y, 0.022);
+    // hand size grows when it comes toward the lens = pull back
+    const dsp = dzone(Math.log(h.span / hand.anchor.span), 0.06);
+    const dr = dzone(h.roll - hand.anchor.roll, 0.12);
+    wantYaw = expo(dx, 14) + expo(-dr, 4) * 0.7;
+    wantUp = expo(-dy, 14);
+    wantFwd = expo(-dsp, 6);
+    wantBank = expo(-dr, 4);
+    hand.twoAnchor = null;
+    handHUD(Math.abs(wantFwd) > 0.1
+      ? (wantFwd > 0 ? 'pushing forward' : 'pulling back')
+      : 'steering · push hand to fly · roll wrist to bank');
+    handBadge('grab');
   } else {
     hand.anchor = null;
-    hand.twoAnchor = 0;
-    if (hand.seen) handHUD('point + tap-pinch to pluck · pinch-drag steers · two pinches fly · fist stops');
-    else handHUD('show me your hands');
+    hand.twoAnchor = null;
+    if (anyThumb) { handHUD('turbo!'); handBadge('turbo'); }
+    else if (hand.seen) {
+      handHUD('pinch-drag steers · push/pull flies · tap-pinch plucks · 👍 turbo · fist stops');
+      handBadge(hands[0].pinch < 0.8 ? 'point' : 'open');
+    } else { handHUD('show me your hands'); handBadge('none'); }
   }
 
-  // smooth the intents hard: landmarks jitter every frame
-  const k = Math.min(dt * 5, 1);
+  // smooth the intents: One Euro removed the shake, this shapes the momentum
+  const k = Math.min(dt * 6, 1);
   hand.vyaw += (wantYaw - hand.vyaw) * k;
+  hand.vpitch += (wantPitch - hand.vpitch) * k;
   hand.vy += (wantUp - hand.vy) * k;
   hand.vz += (wantFwd - hand.vz) * k;
+  hand.bank += (wantBank * 0.32 - hand.bank) * Math.min(dt * 4, 1);
+  hand.turbo += ((anyThumb ? 1 : 0) - hand.turbo) * Math.min(dt * 3, 1);
 
   if (mode !== 'free') return;
+  const boost = 1 + hand.turbo * 1.4;
   yaw -= hand.vyaw * dt * 1.5;
-  pitch = THREE.MathUtils.clamp(pitch + hand.vpitch * dt, -1.1, 0.9);
+  pitch = THREE.MathUtils.clamp(pitch + hand.vpitch * dt * 0.9, -1.1, 0.9);
   const fwd = new THREE.Vector3(
     -Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch),
     -Math.cos(yaw) * Math.cos(pitch));
-  dronePos.addScaledVector(fwd, hand.vz * 70 * dt);
-  dronePos.y += hand.vy * 40 * dt;
+  // thumbs up alone = cruise forward; with any grip it multiplies
+  const fz = hand.vz + (pinched.length ? 0 : hand.turbo * 0.6);
+  dronePos.addScaledVector(fwd, fz * 70 * boost * dt);
+  dronePos.y += hand.vy * 40 * boost * dt;
 }
 
 // ---------- camera modes ----------
@@ -2631,7 +2740,8 @@ function updateCamera(t, dt) {
     camera.rotation.order = 'YXZ';
     camera.rotation.y = yaw + Math.PI;
     camera.rotation.x = pitch;
-    camera.fov += (62 - camera.fov) * Math.min(dt * 3, 1);
+    camera.rotation.z = hand.on ? hand.bank : 0;
+    camera.fov += (62 + (hand.on ? hand.turbo * 14 : 0) - camera.fov) * Math.min(dt * 3, 1);
     camera.updateProjectionMatrix();
   } else {
     const speed = (keys['shift'] ? 34 : 17) * dt;   // giant strides at real scale
