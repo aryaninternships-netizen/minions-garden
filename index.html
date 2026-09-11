@@ -2076,9 +2076,9 @@ function sunflowerG() {
   // needles. Two offset rows give the dense fringe.
   // ray florets: ~30 in two rows, long narrow ligules (about 3.5:1), the
   // outer row flatter and paler at the tips, the inner row lifted a touch
-  whorl(G, 21, { len: 0.62, halfW: 0.16, spread: 93, curl: -0.05, cup: 0.03,
+  whorl(G, 24, { len: 0.62, halfW: 0.19, spread: 93, curl: -0.05, cup: 0.03,
                  y0: 0.0, shade0: 0.80, rgb: [1.0, 0.80, 0.08], NU: 3, NV: 2 });
-  whorl(G, 17, { len: 0.54, halfW: 0.14, spread: 86, curl: -0.02, cup: 0.03,
+  whorl(G, 20, { len: 0.54, halfW: 0.17, spread: 86, curl: -0.02, cup: 0.03,
                  y0: 0.03, az0: 0.15, shade0: 0.84,
                  rgb: [1.0, 0.70, 0.05], NU: 3, NV: 2 });
   // disc: dome in three floret rings
@@ -2089,14 +2089,14 @@ function sunflowerG() {
     // below the rays on purpose: noon sun + specular lifts them 3-4x and a
     // mid-brown reads as gold (that was v3's problem).
     const RING = [
-      [0.00, 0.19, [0.05, 0.03, 0.02]],   // tight dark centre
-      [0.11, 0.17, [0.07, 0.04, 0.02]],
-      [0.22, 0.14, [0.11, 0.06, 0.03]],
-      [0.32, 0.10, [0.19, 0.11, 0.04]],
-      [0.40, 0.06, [0.36, 0.22, 0.06]],   // opening florets
-      [0.46, 0.03, [0.70, 0.46, 0.08]],   // pollen-dusted rim, one thin ring
+      [0.00, 0.10, [0.05, 0.03, 0.02]],   // tight dark centre
+      [0.11, 0.09, [0.07, 0.04, 0.02]],
+      [0.22, 0.07, [0.11, 0.06, 0.03]],
+      [0.32, 0.05, [0.19, 0.11, 0.04]],
+      [0.40, 0.03, [0.36, 0.22, 0.06]],   // opening florets
+      [0.46, 0.02, [0.70, 0.46, 0.08]],   // pollen-dusted rim, one thin ring
     ];
-    G.pos.push(0, 0.21, 0); G.col.push(0.04, 0.025, 0.015);
+    G.pos.push(0, 0.12, 0); G.col.push(0.04, 0.025, 0.015);
     for (const [rr, dy, c] of RING)
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
@@ -2116,7 +2116,7 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.scale(0.62, 0.62, 0.62);          // head ~20% of plant height (garden cultivars)
+  g.scale(0.85, 0.85, 0.85);          // head ~20% of plant height (garden cultivars)
   g.rotateX(-1.0);                     // nodding ~55 deg below vertical
   g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
@@ -2208,7 +2208,8 @@ function plantOne(sp, x, z) {
   const idx = sp.heads.count++; sp.stems.count = sp.heads.count;
   const y = terrainH(x, z);
   const sc = sp.s[0] + Math.random() * (sp.s[1] - sp.s[0]);
-  const d = { x, y, z, scale: sc, rot: Math.random() * 6.28,
+  const d = { x, y, z, scale: sc,
+    rot: sp.name === 'sunflower' ? (Math.random() - 0.5) * 0.5 : Math.random() * 6.28,
     phase: Math.random() * 6.28, plucked: false,
     color: sp.col().clone(), ch: sp, idx, top: sp.top * sc };
   tulipData.push(d);
@@ -2221,7 +2222,7 @@ function plantOne(sp, x, z) {
 {
   const SEC = [0, 1, 3, 5, 6];         // hibiscus, jacob, lily, rose, ...wheel
   // sunflower plaza ring, all facing outward
-  for (let i = 0; i < 900; i++) {
+  for (let i = 0; i < 1700; i++) {
     const a = Math.random() * 6.2832, r = 24 + Math.random() * 17;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (onPath(x, z)) continue;
