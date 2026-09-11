@@ -840,8 +840,10 @@ function updateSky() {
   skyUniforms.uMid.value.copy(lerpStop(elev, 2)).multiplyScalar(rainDim);
   skyUniforms.uLow.value.copy(lerpStop(elev, 3)).multiplyScalar(rainDim);
   scene.fog.color.copy(lerpStop(elev, 5)).multiplyScalar(rainDim * 0.82);
-  scene.fog.near = weather === 'rain' ? 60 : 120;
-  scene.fog.far = weather === 'rain' ? 260 : 420;
+  // far must clear the treeline (r 480+) or the trees fog to solid sky colour
+  // while the ridge (fog off) stays green behind them: the white cast
+  scene.fog.near = weather === 'rain' ? 60 : 220;
+  scene.fog.far = weather === 'rain' ? 300 : 1100;
 
   sun.color.copy(lerpStop(elev, 4));
   sun.intensity = Math.max(elev, 0) * 2.2 * rainDim + 0.15 +
