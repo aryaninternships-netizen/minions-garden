@@ -198,6 +198,8 @@
     body.mobile #alt { bottom: 12px; }
     body.mobile #alt button { width: 44px; height: 44px; }
   }
+  /* minions garden: no basket, no bouquet, flowers stay in the ground */
+  #basket, #bouquetModal { display: none !important; }
   #bouquetModal { position: fixed; inset: 0; display: none; place-items: center;
     background: rgba(30,20,15,.55); backdrop-filter: blur(4px); }
   #bouquetModal .box { background: #faf6ef; border-radius: 20px; padding: 36px 44px;
@@ -239,7 +241,7 @@
       <button data-w="rain">🌧 Rain</button>
     </div>
   </div>
-  <div id="hint">pluck any flower you like</div>
+  <div id="hint">wander the seven beds</div>
   <div id="fps">– fps</div>
   <div id="handCursor"></div>
   <div id="handPanel" class="panel">
@@ -1852,7 +1854,7 @@ const tulipData = [];      // kept name: pluck, butterflies, bouquet all use it
 function whorl(G, k, opts) {
   // one ring of petals into geometry arrays G = {pos, col, idx, base}
   const { NU = 4, NV = 3, len = 1, halfW = 0.3, spread = 60, curl = 0,
-          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0 } = opts;
+          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0, tip = 1 } = opts;
   const sp = spread * Math.PI / 180;
   for (let p = 0; p < k; p++) {
     const az = az0 + (p / k) * Math.PI * 2;
@@ -1860,7 +1862,8 @@ function whorl(G, k, opts) {
     const start = G.base;
     for (let iu = 0; iu <= NU; iu++) {
       const u = iu / NU;
-      const w = Math.pow(Math.sin(Math.PI * Math.min(u * 1.12, 1)), 0.72);
+      // tip < 1 keeps width at the end: oblong ligules instead of needles
+      const w = Math.pow(Math.sin(Math.PI * Math.min(u * 1.12, tip)), 0.72);
       const r = Math.sin(sp) * len * u;
       let y = y0 + Math.cos(sp) * len * u + curl * u * u * len;
       for (let iv = 0; iv <= NV; iv++) {
@@ -2076,11 +2079,11 @@ function sunflowerG() {
   // needles. Two offset rows give the dense fringe.
   // ray florets: ~30 in two rows, long narrow ligules (about 3.5:1), the
   // outer row flatter and paler at the tips, the inner row lifted a touch
-  whorl(G, 24, { len: 0.62, halfW: 0.19, spread: 93, curl: -0.05, cup: 0.03,
-                 y0: 0.0, shade0: 0.80, rgb: [1.0, 0.80, 0.08], NU: 3, NV: 2 });
-  whorl(G, 20, { len: 0.54, halfW: 0.17, spread: 86, curl: -0.02, cup: 0.03,
+  whorl(G, 24, { len: 0.62, halfW: 0.17, spread: 93, curl: -0.05, cup: 0.03, tip: 0.9,
+                 y0: 0.0, shade0: 0.80, rgb: [1.0, 0.80, 0.08], NU: 4, NV: 3 });
+  whorl(G, 20, { len: 0.54, halfW: 0.15, spread: 86, curl: -0.02, cup: 0.03, tip: 0.9,
                  y0: 0.03, az0: 0.15, shade0: 0.84,
-                 rgb: [1.0, 0.70, 0.05], NU: 3, NV: 2 });
+                 rgb: [1.0, 0.70, 0.05], NU: 4, NV: 3 });
   // disc: dome in three floret rings
   {
     const seg = 28, start = G.base;
@@ -2599,7 +2602,7 @@ async function enableHands() {
     hand.ready = true;
     document.getElementById('mHands').classList.add('on');
     setMode('free');                   // hands fly the free drone
-    handHUD('pinch-drag steers · push/pull flies · tap-pinch plucks · 👍 turbo · fist stops');
+    handHUD('pinch-drag steers · push/pull flies · 👍 turbo · fist stops');
   } catch (err) {
     handHUD('camera blocked: ' + (err && err.name ? err.name : err));
     console.warn('hand control failed', err);
@@ -2782,7 +2785,7 @@ function updateHandControl(t, dt) {
     hand.twoAnchor = null;
     if (anyThumb) { handHUD('turbo!'); handBadge('turbo'); }
     else if (hand.seen) {
-      handHUD('pinch-drag steers · push/pull flies · tap-pinch plucks · 👍 turbo · fist stops');
+      handHUD('pinch-drag steers · push/pull flies · 👍 turbo · fist stops');
       handBadge(hands[0].pinch < 0.8 ? 'point' : 'open');
     } else { handHUD('show me your hands'); handBadge('none'); }
   }
@@ -2885,7 +2888,7 @@ function setMode(m) {
   document.getElementById('mFree').classList.toggle('on', m === 'free');
   document.getElementById('mWalk').classList.toggle('on', m === 'walk');
   document.getElementById('hint').textContent = m === 'walk'
-    ? 'WASD to walk · shift to run · drag to look · click flowers to pluck'
+    ? 'WASD to walk · shift to run · drag to look'
     : m === 'free'
     ? 'drag to look · WASD to fly · Q/E up-down · ✋ Hands for gesture control'
     : 'cinematic drone reel · sit back, or drag to nudge';
@@ -2902,7 +2905,7 @@ function setMode(m) {
   { const h = document.getElementById('hint'); h.classList.remove('gone');
     clearTimeout(h._t); h._t = setTimeout(() => h.classList.add('gone'), 5000); }
   if (MOBILE) document.getElementById('hint').textContent = m === 'walk'
-    ? 'stick walks (push to edge to run) · drag to look · tap a bloom to pluck'
+    ? 'stick walks (push to edge to run) · drag to look'
     : m === 'free' ? 'stick flies · ▲▼ altitude · drag to look · ✋ Hands works too'
     : 'cinematic reel · tap Free or Walk to take over';
 }
@@ -3038,6 +3041,7 @@ const picked = []; // colors
 const flyers = []; // plucked tulip flying to camera
 
 function pluckAtNDC(nx, ny) {
+  return false;                        // plucking disabled in this garden
   const m = new THREE.Vector2(nx, ny);
   ray.setFromCamera(m, camera);
   // forgiving pick: nearest unplucked tulip head to the click ray
