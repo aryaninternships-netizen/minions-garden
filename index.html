@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Minions Garden 3D</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -55,10 +55,12 @@
     border-radius: 999px; padding: 4px;
     backdrop-filter: blur(14px) saturate(1.3);
     box-shadow: 0 8px 30px rgba(0,0,0,.28); }
-  #modes button {
+  #modes button { min-width: 36px;
     border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer;
     font: 500 .78rem Inter, sans-serif; color: var(--ink);
     background: transparent; transition: background .18s, color .18s; }
+  #modes button span { display: none; margin-left: 5px; }
+  #modes button.on span { display: inline; }
   #modes button:hover { background: var(--glass-hi); }
   #modes button.on { background: var(--accent); color: #201a04;
     box-shadow: 0 2px 10px rgba(247,200,38,.4); }
@@ -79,6 +81,10 @@
 
   #skybar { position: absolute; top: 72px; right: 26px; display: flex;
     flex-direction: column; gap: 7px; align-items: flex-end; }
+  #skybar .chips { display: none; }
+  #skybar.open .chips { display: flex; }
+  #wicon { cursor: pointer; }
+  #skybar.open #wicon { box-shadow: 0 0 0 2px var(--accent); }
   #wicon { width: 46px; height: 46px; border-radius: 50%;
     background: var(--glass); border: 1px solid var(--edge);
     backdrop-filter: blur(14px); }
@@ -125,6 +131,64 @@
     padding: 6px 15px; border-radius: 999px; backdrop-filter: blur(10px);
     white-space: nowrap; }
 
+
+  /* ---------- mobile: touch controls, lighter HUD ---------- */
+  #stick { display: none; position: absolute; left: 18px; bottom: 18px;
+    width: 124px; height: 124px; border-radius: 50%; touch-action: none;
+    background: var(--glass); border: 1px solid var(--edge);
+    backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+  #knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px;
+    margin: -27px 0 0 -27px; border-radius: 50%; pointer-events: none;
+    background: rgba(255,255,255,.88); box-shadow: 0 3px 12px rgba(0,0,0,.35); }
+  #stick.run #knob { background: var(--accent); }
+  #alt { display: none; position: absolute; right: 14px; bottom: 18px;
+    flex-direction: column; gap: 10px; }
+  #alt button { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--edge);
+    background: var(--glass); color: var(--ink); font-size: 1.2rem; touch-action: none;
+    backdrop-filter: blur(10px); -webkit-user-select: none; user-select: none; }
+  #alt button:active { background: var(--accent); }
+  body.mobile { touch-action: none; overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+  body.mobile canvas { filter: none; }        /* CSS filter on a fullscreen canvas halves mobile fps */
+  body.mobile #grain, body.mobile #fps, body.mobile #title p { display: none; }
+  body.mobile #title { top: 12px; left: 14px; }
+  body.mobile #title h1 { font-size: 1.15rem; }
+  body.mobile #modes { top: 44px; left: 12px; right: auto; padding: 3px; gap: 2px; }
+  body.mobile #modes button { padding: 6px 9px; font-size: .68rem; }
+  body.mobile #skybar { top: 92px; right: 10px; gap: 5px; }
+  body.mobile #wicon { width: 34px; height: 34px; }
+  body.mobile .chips button { padding: 5px 8px; font-size: .62rem; }
+  body.mobile #hint { bottom: 156px; font-size: .66rem; padding: 5px 12px;
+    max-width: 92vw; white-space: normal; text-align: center; line-height: 1.35; }
+  body.mobile #basket { bottom: 14px; padding: 6px 6px 6px 12px; gap: 8px; max-width: 46vw; }
+  body.mobile #stems { overflow: hidden; max-width: 90px; }
+  body.mobile #stems svg { width: 10px; height: 24px; }
+  body.mobile #count { font-size: .68rem; }
+  body.mobile #bouquetBtn { padding: 6px 10px; font-size: .68rem; }
+  body.mobile #handPanel { width: 120px; right: 10px; bottom: 156px; }
+  body.mobile #handPanel video { width: 120px; height: 90px; }
+  body.mobile #handPanel canvas { width: 120px; height: 90px; }
+  body.mobile #handMsg { font-size: .56rem; padding: 4px 6px; }
+  body.mobile #handGesture { font-size: .52rem; left: 5px; top: 5px; }
+  body.mobile[data-mode="free"] #stick, body.mobile[data-mode="walk"] #stick { display: block; }
+  body.mobile[data-mode="free"] #alt { display: flex; }
+  body.mobile[data-mode="free"] #basket, body.mobile[data-mode="walk"] #basket { left: 50%; }
+  body.mobile #bouquetModal .box { padding: 22px 18px; max-width: 92vw; }
+  body.mobile #bouquetSvg { width: 200px; height: 230px; }
+  #rotHint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    padding: 10px 18px; border-radius: 999px; background: rgba(12,14,20,.6);
+    color: #fff; font: 500 .8rem Inter, sans-serif; border: 1px solid var(--edge);
+    backdrop-filter: blur(10px); opacity: 0; transition: opacity .5s; pointer-events: none; }
+  #rotHint.show { opacity: 1; }
+  @media (max-height: 460px) {   /* phone landscape; rules are scoped by body.mobile */
+    body.mobile #modes { top: 10px; left: auto; right: 10px; }
+    body.mobile #skybar { top: 50px; }
+    body.mobile #hint { bottom: 8px; left: 50%; }
+    body.mobile #handPanel { bottom: 60px; }
+    body.mobile #stick { width: 100px; height: 100px; bottom: 12px; }
+    body.mobile #alt { bottom: 12px; }
+    body.mobile #alt button { width: 44px; height: 44px; }
+  }
   #bouquetModal { position: fixed; inset: 0; display: none; place-items: center;
     background: rgba(30,20,15,.55); backdrop-filter: blur(4px); }
   #bouquetModal .box { background: #faf6ef; border-radius: 20px; padding: 36px 44px;
@@ -146,10 +210,10 @@
     <p>seven flowers, one wild lawn</p>
   </div>
   <div id="modes" class="panel">
-    <button id="mDrone" class="on">🎬 FPV</button>
-    <button id="mFree">🚁 Free</button>
-    <button id="mWalk">🚶 Walk</button>
-    <button id="mHands">✋ Hands</button>
+    <button id="mDrone" class="on" title="FPV">🎬<span>FPV</span></button>
+    <button id="mFree" title="Free">🚁<span>Free</span></button>
+    <button id="mWalk" title="Walk">🚶<span>Walk</span></button>
+    <button id="mHands" title="Hands">✋<span>Hands</span></button>
   </div>
   <div id="skybar" class="panel">
     <div id="wicon"></div>
@@ -174,6 +238,9 @@
     <div id="handGesture" class="g-none">none</div>
 <div id="handMsg">starting…</div>
   </div>
+  <div id="rotHint">📱↻ rotate for the wide view</div>
+  <div id="stick" class="panel"><div id="knob"></div></div>
+  <div id="alt" class="panel"><button id="altUp">▲</button><button id="altDn">▼</button></div>
   <div id="basket" class="panel">
     <div id="stems"></div>
     <span id="count">0 flowers picked</span>
@@ -207,11 +274,16 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 // ---------- scene ----------
 const scene = new THREE.Scene();
+// phones + tablets: coarse pointer, or a narrow window. Drives instance
+// budgets, DPR cap, shadows, and which HUD (touch stick vs WASD) shows.
+const MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
+if (MOBILE) document.body.classList.add('mobile');
+window.MOBILE = MOBILE;
 scene.fog = new THREE.Fog(0xcfe6f5, 430, 1500);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.0 : 1.25));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !MOBILE;    // shadow pass costs a full extra draw of the field
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;   // raised at low sun in updateSky
@@ -1649,7 +1721,7 @@ const grassTime = { value: 0 }, grassWind = { value: 1 };
     }
     blade.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   }
-  const N = 200000;
+  const N = MOBILE ? 60000 : 200000;
   const gm = new THREE.MeshLambertMaterial({ vertexColors: true,
     side: THREE.DoubleSide });
   gm.onBeforeCompile = sh => {
@@ -2016,7 +2088,8 @@ for (const sp of SPECIES) {
     specular: new THREE.Color(0x303030) });
   const stMat = new THREE.MeshLambertMaterial({ color: 0xffffff,
     vertexColors: true });
-  sp.heads = new THREE.InstancedMesh(sp.bloom, bloomMat, sp.cap);
+  if (MOBILE) sp.cap = Math.round(sp.cap * 0.38);
+sp.heads = new THREE.InstancedMesh(sp.bloom, bloomMat, sp.cap);
   sp.stems = new THREE.InstancedMesh(sp.stem, stMat, sp.cap);
   sp.leaves = sp.stems;                 // alias keeps old triple-write code
   sp.heads.count = sp.stems.count = 0;
@@ -2275,7 +2348,7 @@ new GLTFLoader().load('assets/woman_dress.glb', g => {
 function updateGirl(t, dt, moving) {
   if (gltfGirl) {
     girlMixer.update(dt);
-    const running = moving && keys['shift'];
+    const running = moving && (keys['shift'] || joy.run);
     switchAction(!moving ? idleAction
                  : (running && runAction) ? runAction : walkAction);
     const gy = terrainH(walker.x, walker.z);
@@ -2633,19 +2706,66 @@ const keys = {};
 addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
 addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-let dragging = false, px = 0, py = 0, moved = 0;
+let dragging = false, px = 0, py = 0, moved = 0, lookId = null;
 renderer.domElement.addEventListener('pointerdown', e => {
-  dragging = true; moved = 0; px = e.clientX; py = e.clientY;
+  if (dragging) return;                       // second finger: ignore, keep first
+  dragging = true; lookId = e.pointerId; moved = 0; px = e.clientX; py = e.clientY;
 });
 addEventListener('pointermove', e => {
-  if (!dragging) return;
+  if (!dragging || e.pointerId !== lookId) return;
   const dx = e.clientX - px, dy = e.clientY - py;
   moved += Math.abs(dx) + Math.abs(dy);
   px = e.clientX; py = e.clientY;
   yaw -= dx * 0.004; pitch -= dy * 0.003;
   pitch = Math.max(-1.2, Math.min(0.5, pitch));
 });
-addEventListener('pointerup', () => dragging = false);
+addEventListener('pointerup', e => { if (e.pointerId === lookId) dragging = false; });
+addEventListener('pointercancel', e => { if (e.pointerId === lookId) dragging = false; });
+
+// ---------- touch: virtual stick + altitude buttons (mobile only) ----------
+// joy.x/joy.y are analog -1..1; the movement blocks add them next to WASD.
+// Look-drag on the canvas uses its own pointerId so a thumb on the stick and
+// a finger on the world never fight.
+const joy = { x: 0, y: 0, up: 0, run: false, id: null };
+window.JOY = joy;
+{
+  const stick = document.getElementById('stick'), knob = document.getElementById('knob');
+  const R = 46;
+  const setKnob = (dx, dy) => { knob.style.transform = `translate(${dx}px, ${dy}px)`; };
+  const readStick = e => {
+    const b = stick.getBoundingClientRect();
+    let dx = e.clientX - (b.left + b.width / 2), dy = e.clientY - (b.top + b.height / 2);
+    const d = Math.hypot(dx, dy) || 1, cl = Math.min(d, R);
+    dx = dx / d * cl; dy = dy / d * cl;
+    setKnob(dx, dy);
+    const dead = 0.12, m = cl / R;
+    const g = m < dead ? 0 : (m - dead) / (1 - dead);
+    joy.x = dx / cl * g || 0; joy.y = -dy / cl * g || 0;
+    joy.run = m > 0.94;
+    stick.classList.toggle('run', joy.run);
+  };
+  stick.addEventListener('pointerdown', e => {
+    joy.id = e.pointerId; try { stick.setPointerCapture(e.pointerId); } catch {}
+    readStick(e);
+  });
+  stick.addEventListener('pointermove', e => { if (e.pointerId === joy.id) readStick(e); });
+  const end = e => {
+    if (e.pointerId !== joy.id) return;
+    joy.id = null; joy.x = joy.y = 0; joy.run = false; setKnob(0, 0);
+    stick.classList.remove('run');
+  };
+  stick.addEventListener('pointerup', end);
+  stick.addEventListener('pointercancel', end);
+  const hold = (id, v) => {
+    const b = document.getElementById(id);
+    const on = e => { e.preventDefault(); joy.up = v; };
+    const off = () => { if (joy.up === v) joy.up = 0; };
+    b.addEventListener('pointerdown', on);
+    b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off);
+    b.addEventListener('pointerleave', off);
+  };
+  hold('altUp', 1); hold('altDn', -1);
+}
 
 const dronePos = new THREE.Vector3(0, 60, 170);
 function setMode(m) {
@@ -2667,8 +2787,20 @@ function setMode(m) {
     pitch = Math.asin(THREE.MathUtils.clamp(d.y, -1, 1));
   }
   document.body.classList.toggle('cine', m === 'walk');   // letterbox
+  document.body.dataset.mode = m;
+  if (MOBILE) document.getElementById('hint').textContent = m === 'walk'
+    ? 'stick walks (push to edge to run) · drag to look · tap a bloom to pluck'
+    : m === 'free' ? 'stick flies · ▲▼ altitude · drag to look · ✋ Hands works too'
+    : 'cinematic reel · tap Free or Walk to take over';
 }
 document.getElementById('mDrone').onclick = () => setMode('drone');
+{ // time + weather chips live behind the sun icon; pick one and it folds away
+  const sb = document.getElementById('skybar');
+  document.getElementById('wicon').addEventListener('click', () => sb.classList.toggle('open'));
+  sb.querySelectorAll('.chips button').forEach(b => b.addEventListener('click', () => sb.classList.remove('open')));
+}
+document.body.dataset.mode = mode;
+if (MOBILE) document.getElementById('hint').textContent = 'cinematic reel · tap Free or Walk to take over';
 document.getElementById('mFree').onclick = () => setMode('free');
 document.getElementById('mWalk').onclick = () => setMode('walk');
 document.getElementById('mHands').onclick = () => enableHands();
@@ -2729,6 +2861,9 @@ function updateCamera(t, dt) {
     if (keys['d'] || keys['arrowright']) dronePos.addScaledVector(right, spd);
     if (keys['q']) dronePos.y += spd;
     if (keys['e']) dronePos.y -= spd;
+    if (joy.y) dronePos.addScaledVector(fwd, spd * joy.y * (joy.run ? 2.1 : 1));
+    if (joy.x) dronePos.addScaledVector(right, spd * joy.x);
+    if (joy.up) dronePos.y += spd * joy.up;
     const minY = terrainH(
       THREE.MathUtils.clamp(dronePos.x, -SIZE / 2, SIZE / 2),
       THREE.MathUtils.clamp(dronePos.z, -SIZE / 2, SIZE / 2)) + 2.5;
@@ -2751,11 +2886,14 @@ function updateCamera(t, dt) {
     if (keys['s'] || keys['arrowdown']) walker.addScaledVector(fwd, speed);
     if (keys['a'] || keys['arrowleft']) walker.addScaledVector(right, -speed);
     if (keys['d'] || keys['arrowright']) walker.addScaledVector(right, speed);
+    if (joy.y) walker.addScaledVector(fwd, -speed * joy.y * (joy.run ? 2 : 1));
+    if (joy.x) walker.addScaledVector(right, speed * joy.x);
     walker.x = Math.max(-SIZE / 2 + 6, Math.min(SIZE / 2 - 6, walker.x));
     walker.z = Math.max(-SIZE / 2 + 6, Math.min(SIZE / 2 - 6, walker.z));
     const moving = !!(keys['w'] || keys['a'] || keys['s'] || keys['d'] ||
-      keys['arrowup'] || keys['arrowdown'] || keys['arrowleft'] || keys['arrowright']);
-    const running = moving && keys['shift'];
+      keys['arrowup'] || keys['arrowdown'] || keys['arrowleft'] || keys['arrowright'] ||
+      Math.hypot(joy.x, joy.y) > 0.15);
+    const running = moving && (keys['shift'] || joy.run);
     updateGirl(t, dt, moving);
     // GTA-style shoulder cam: offset right, lagged follow, breathing sway
     const gy = terrainH(walker.x, walker.z);
@@ -2922,7 +3060,7 @@ document.querySelectorAll('#wxChips button').forEach(b => b.onclick = () => {
 // ---------- loop ----------
 // ---------- post-processing: bloom for sun/water/petal highlights ----------
 const composer = new EffectComposer(renderer);
-composer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
+composer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.0 : 1.25));
 composer.addPass(new RenderPass(scene, camera));
 // half-res bloom buffer: full-res cost ~2x frame time at 60k tulips
 const bloom = new UnrealBloomPass(
@@ -2930,12 +3068,34 @@ const bloom = new UnrealBloomPass(
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
+// ---------- viewport + rotation ----------
+// Phones rotate: iOS fires resize before innerWidth/innerHeight settle, so
+// refit again shortly after. Portrait gets a zoom-out (camera.zoom scales the
+// projection, so every mode's fov code stays untouched) or the tall frame
+// turns the garden into a keyhole.
+function fitViewport() {
+  const w = innerWidth, h = innerHeight;
+  if (!w || !h) return;
+  camera.aspect = w / h;
+  camera.zoom = MOBILE && w < h ? 0.78 : 1;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-  composer.setSize(innerWidth, innerHeight);
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  document.body.classList.toggle('portrait', w < h);
+}
+addEventListener('resize', fitViewport);
+addEventListener('orientationchange', () => {
+  fitViewport(); setTimeout(fitViewport, 150); setTimeout(fitViewport, 500);
 });
+if (window.visualViewport) visualViewport.addEventListener('resize', fitViewport);
+if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(fitViewport, 150));
+fitViewport();
+window.CAM = camera;                   // debug handle
+if (MOBILE && innerWidth < innerHeight) {
+  const r = document.getElementById('rotHint');
+  r.classList.add('show');
+  setTimeout(() => r.classList.remove('show'), 5200);
+}
 // wetness: petals & ground turn glossy in rain, dry off after
 let wet = 0;
 const drySpec = new THREE.Color(0x404040), wetSpec = new THREE.Color(0xa8c0d8);
