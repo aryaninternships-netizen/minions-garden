@@ -3,14 +3,46 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Minion Bageecha</title>
-<meta name="description" content="Minions Garden: a 3D garden of hibiscus, lilies, sunflowers, roses and raat ki rani you can fly, walk and steer with your hands.">
+<title>Minion Bageecha | 3D interactive flower garden you can fly, walk and steer with your hands</title>
+<meta name="description" content="A free 3D flower garden in your browser: hibiscus, lilies, sunflowers, roses and raat ki rani under a live sky. Fly it, walk it, or steer it with your hands.">
+<link rel="canonical" href="https://minionbageecha.in/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="author" content="Aryan Singh">
+<meta name="keywords" content="3D garden, interactive garden, virtual garden, WebGL garden, sunflower, hibiscus, raat ki rani, hand gesture control, Three.js, bageecha">
+<meta name="application-name" content="Minion Bageecha">
 <meta name="theme-color" content="#4a5e66">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta property="og:title" content="Minion Bageecha">
-<meta property="og:description" content="Seven flowers, one wild lawn. Fly it, walk it, or steer with your hands.">
-<meta property="og:url" content="https://minionbageecha.in/">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Minion Bageecha">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Bageecha">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://minionbageecha.in/">
+<meta property="og:title" content="Minion Bageecha: a 3D garden you can fly, walk, or steer with your hands">
+<meta property="og:description" content="Seven flowers we grew up around, planted in one lawn. Live sky, real weather, hand-gesture control. Free, in the browser.">
+<meta property="og:image" content="https://minionbageecha.in/assets/og.jpg">
+<meta property="og:image:secure_url" content="https://minionbageecha.in/assets/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Minion Bageecha: the 3D garden at noon, seen from the main path">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Bageecha: a 3D garden you can fly, walk, or steer with your hands">
+<meta name="twitter:description" content="Seven flowers we grew up around, planted in one lawn. Live sky, real weather, hand-gesture control. Free, in the browser.">
+<meta name="twitter:image" content="https://minionbageecha.in/assets/og.jpg">
+<meta name="twitter:image:alt" content="Minion Bageecha: the 3D garden at noon, seen from the main path">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Rozha+One&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; box-sizing: border-box; }
@@ -51,7 +83,7 @@
 
   #title { position: absolute; top: 20px; left: 26px; color: #fff;
     text-shadow: 0 2px 14px rgba(0,0,0,.45); }
-  #title h1 { font-family: Fraunces, serif; font-size: 1.75rem;
+  #title .brand { font-family: Fraunces, serif; font-size: 1.75rem;
     letter-spacing: -.015em; font-weight: 600; }
   #title p { font-size: .74rem; opacity: .82; margin-top: 2px;
     letter-spacing: .02em; }
@@ -194,7 +226,23 @@
   #intro .hiw .sw { fill: none; stroke: #ffe1b8; stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
   #intro .hiw .sw2 { stroke-width: 26; }
   #intro .hiw.ready .g { fill-opacity: 1; }
-  #title h1 .hi { color: #ffe1b8; }
+  #title .brand .hi { color: #ffe1b8; }
+  /* ---------- about / FAQ sheet (crawlable, opens from the intro) ---------- */
+  #about { position: fixed; inset: 0; z-index: 30; overflow-y: auto; padding: 24px 14px;
+    background: rgba(8,10,16,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  #about .sheet { position: relative; max-width: 720px; margin: 0 auto; padding: 40px 44px 36px;
+    border-radius: 22px; color: #f7f2ea; background: rgba(20,22,28,.78);
+    border: 1px solid rgba(255,255,255,.14); box-shadow: 0 40px 100px rgba(0,0,0,.5); }
+  #about .close { position: absolute; top: 16px; right: 16px; width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font-size: 1.1rem; cursor: pointer; }
+  #about h2 { font-family: Fraunces, serif; font-weight: 500; font-size: 2rem; letter-spacing: -.02em; margin-bottom: 12px; }
+  #about h3 { font-family: Fraunces, serif; font-weight: 500; font-size: 1.25rem; margin: 30px 0 10px; color: #ffe1b8; }
+  #about h4 { font: 500 .95rem Inter, sans-serif; margin: 16px 0 4px; }
+  #about p, #about li { font: 400 .92rem/1.6 Inter, sans-serif; color: rgba(247,242,234,.86); }
+  #about ul { padding-left: 18px; } #about li { margin: 4px 0; } #about li b { color: #f7f2ea; font-weight: 500; }
+  #about .made { margin-top: 30px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.14); font-size: .8rem; color: rgba(247,242,234,.6); }
+  #intro .foot a, #title a { color: #ffe1b8; text-decoration: none; border-bottom: 1px solid rgba(255,225,184,.4); }
+  @media (max-width: 560px) { #about .sheet { padding: 28px 20px 24px; } #about h2 { font-size: 1.6rem; } }
   body.intro #hud { opacity: 0; pointer-events: none; }
   #hud { transition: opacity .6s; }
   @media (max-width: 560px) {
@@ -235,7 +283,7 @@
   body.mobile canvas { filter: none; }        /* CSS filter on a fullscreen canvas halves mobile fps */
   body.mobile #grain, body.mobile #fps, body.mobile #title p { display: none; }
   body.mobile #title { top: 12px; left: 14px; }
-  body.mobile #title h1 { font-size: 1.15rem; }
+  body.mobile #title .brand { font-size: 1.15rem; }
   body.mobile #modes { top: 44px; left: 12px; right: auto; padding: 3px; gap: 2px; }
   body.mobile #modes button { padding: 6px 9px; font-size: .68rem; }
   body.mobile #skybar { top: 92px; right: 10px; gap: 5px; }
@@ -285,8 +333,132 @@
   #bouquetModal button { border: 0; border-radius: 999px; padding: 10px 22px;
     background: #c22a2a; color: #fff; font: 500 .9rem Inter; cursor: pointer; }
 </style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Person",
+   "@id": "https://minionbageecha.in/#author",
+   "name": "Aryan Singh",
+   "jobTitle": "Developer"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://minionbageecha.in/#website",
+   "url": "https://minionbageecha.in/",
+   "name": "Minion Bageecha",
+   "alternateName": "Minions Garden",
+   "description": "A free 3D flower garden in your browser: hibiscus, lilies, sunflowers, roses and raat ki rani under a live sky. Fly it, walk it, or steer it with your hands.",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://minionbageecha.in/#author"
+   }
+  },
+  {
+   "@type": "WebApplication",
+   "@id": "https://minionbageecha.in/#app",
+   "name": "Minion Bageecha",
+   "url": "https://minionbageecha.in/",
+   "description": "Minion Bageecha (bageecha is Hindi for garden) is a free 3D interactive garden that runs in a web browser. Seven kinds of flower grow in beds around a sunflower plaza, under a sky that follows your local clock. You can watch a cinematic drone reel, fly the drone yourself, walk the paths as a character, or steer with hand gestures through your webcam. Nothing to install.",
+   "applicationCategory": "EntertainmentApplication",
+   "applicationSubCategory": "3D interactive garden",
+   "operatingSystem": "Any (web browser)",
+   "browserRequirements": "Requires JavaScript and WebGL",
+   "isAccessibleForFree": true,
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR"
+   },
+   "image": "https://minionbageecha.in/assets/og.jpg",
+   "screenshot": "https://minionbageecha.in/assets/og.jpg",
+   "author": {
+    "@id": "https://minionbageecha.in/#author"
+   },
+   "inLanguage": "en",
+   "keywords": "3D garden, interactive garden, virtual garden, WebGL garden, sunflower, hibiscus, raat ki rani, hand gesture control, Three.js, bageecha",
+   "featureList": [
+    "Cinematic drone reel",
+    "Free-fly drone camera",
+    "Third-person walk mode",
+    "Hand-gesture control via webcam (MediaPipe)",
+    "Live sky that follows your local clock",
+    "Rain, sunrise, sunset and night",
+    "Works on desktop and phones"
+   ],
+   "isPartOf": {
+    "@id": "https://minionbageecha.in/#website"
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://minionbageecha.in/#faq",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "What is Minion Bageecha?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do I move around the garden?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How does hand-gesture control work?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Does it work on a phone?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Why does the light keep changing?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Do the flowers behave like real ones?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Who made Minion Bageecha?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character."
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
 </head>
 <body class="intro">
+<noscript><div style="padding:40px;font:16px/1.6 Inter,sans-serif;color:#f7f2ea;max-width:640px"><h1>Minion Bageecha</h1><p>Minion Bageecha (bageecha is Hindi for garden) is a free 3D interactive garden that runs in a web browser. Seven kinds of flower grow in beds around a sunflower plaza, under a sky that follows your local clock. You can watch a cinematic drone reel, fly the drone yourself, walk the paths as a character, or steer with hand gestures through your webcam. Nothing to install.</p><p>This garden needs JavaScript and WebGL. Turn JavaScript on, or open it in a current Chrome, Safari, Firefox or Edge.</p></div></noscript>
 <div id="vignette"></div>
 <div id="grain"></div>
 <div id="barTop" class="bar"></div><div id="barBot" class="bar"></div>
@@ -309,13 +481,30 @@
       <button data-m="drone" disabled>Explore the garden <i>→</i></button>
       <span class="load" id="introMsg">growing the garden</span>
     </div>
-    <div class="foot">Best in landscape on a phone. The sky keeps your local time.</div>
+    <div class="foot">Best in landscape on a phone. The sky keeps your local time. <a href="#about">About this garden</a></div>
     <div class="bar"><i id="introBar"></i></div>
   </div>
 </div>
+<section id="about" hidden aria-labelledby="aboutH">
+  <article class="sheet">
+    <button class="close" aria-label="Close">×</button>
+    <h2 id="aboutH">About Minion Bageecha</h2>
+    <p>Minion Bageecha (bageecha is Hindi for garden) is a free 3D interactive garden that runs in a web browser. Seven kinds of flower grow in beds around a sunflower plaza, under a sky that follows your local clock. You can watch a cinematic drone reel, fly the drone yourself, walk the paths as a character, or steer with hand gestures through your webcam. Nothing to install.</p>
+    <h3>What grows here</h3>
+    <ul><li><b>Hibiscus</b>: opens at dawn and is spent by evening, the way a real hibiscus flower lasts a single day</li><li><b>Jacob’s lily (Sprekelia)</b>: deep red, six-petalled, in the long beds</li><li><b>Raat ki rani (night-blooming jasmine)</b>: opens after dark, glows faintly, and draws the moths</li><li><b>Lilies</b>: white, pink, orange and yellow, on the shore side</li><li><b>Sunflowers</b>: a plaza of them in the centre; young heads follow the sun, mature heads face east</li><li><b>White and black roses</b>: two full beds</li><li><b>Leaf rosettes</b>: ornamental foliage hugging the plaza and the paths</li></ul>
+    <h3>How to explore</h3>
+    <ul><li><b>Watch the reel</b>: a cinematic drone loop, four shots, no input needed.</li>
+        <li><b>Fly</b>: drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude.</li>
+        <li><b>Walk</b>: third person; WASD or the stick, hold shift or push the stick to its edge to run.</li>
+        <li><b>Hands</b>: allow the camera, then pinch and drag to steer, pull toward you to fly forward, push away to reverse, roll the wrist to bank, two pinches for a steering wheel, thumbs up for turbo, fist to stop.</li></ul>
+    <h3>Questions people ask</h3>
+    <h4>What is Minion Bageecha?</h4><p>Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install.</p><h4>How do I move around the garden?</h4><p>Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run).</p><h4>How does hand-gesture control work?</h4><p>Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device.</p><h4>Does it work on a phone?</h4><p>Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best.</p><h4>Why does the light keep changing?</h4><p>The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain.</p><h4>Do the flowers behave like real ones?</h4><p>As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do.</p><h4>Who made Minion Bageecha?</h4><p>Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character.</p>
+    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser.</p>
+  </article>
+</section>
 <div id="hud">
   <div id="title" class="panel">
-    <h1>Minion <span class="hi">बगीचा</span></h1>
+    <p class="brand">Minion <span class="hi" lang="hi">बगीचा</span></p>
     <p>seven flowers, one wild lawn</p>
   </div>
   <div id="modes" class="panel">
@@ -2197,7 +2386,7 @@ function sunflowerG() {
   const G = newG();
   // bracts peeking between the petals
   // receptacle + phyllaries: the green back you see when a head nods away
-  disc(G, -0.06, 0.42, 18, -0.08, [0.20, 0.34, 0.14], [0.26, 0.42, 0.18]);
+  disc(G, -0.06, 0.36, 18, -0.07, [0.20, 0.34, 0.14], [0.26, 0.42, 0.18]);
   whorl(G, 14, { len: 0.30, halfW: 0.08, spread: 104, curl: 0.03, y0: -0.05,
                  shade0: 0.7, rgb: [0.24, 0.40, 0.17], NU: 2, NV: 2 });
   // ray florets: SHORT, WIDE, tightly overlapping — the disc is roughly half
@@ -2207,10 +2396,10 @@ function sunflowerG() {
   // outer row flatter and paler at the tips, the inner row lifted a touch
   // ~30 rays, each about as long as the disc radius, with clear gaps: the
   // eye needs to count petals or the ring reads as a solid yellow band
-  whorl(G, 21, { len: 0.70, halfW: 0.118, spread: 92, curl: -0.09, cup: 0.05, tip: 1, jit: 0.14,
+  whorl(G, 24, { len: 0.70, halfW: 0.14, spread: 92, curl: -0.09, cup: 0.05, tip: 1, jit: 0.14,
                  y0: 0.0, shade0: 0.74, rgb: [1.0, 0.78, 0.10], NU: 4, NV: 3 });
   // inner row stays flat at y 0 so it never pokes up through the disc rim
-  whorl(G, 16, { len: 0.58, halfW: 0.10, spread: 90, curl: -0.04, cup: 0.04, tip: 1, jit: 0.14,
+  whorl(G, 18, { len: 0.60, halfW: 0.125, spread: 90, curl: -0.04, cup: 0.04, tip: 1, jit: 0.14,
                  y0: 0.0, az0: 0.15, shade0: 0.80,
                  rgb: [1.0, 0.71, 0.06], NU: 4, NV: 3 });
   // disc: dome in three floret rings
@@ -2221,14 +2410,14 @@ function sunflowerG() {
     // below the rays on purpose: noon sun + specular lifts them 3-4x and a
     // mid-brown reads as gold (that was v3's problem).
     const RING = [
-      [0.00, 0.09, [0.11, 0.06, 0.03]],   // tight dark centre
-      [0.09, 0.08, [0.15, 0.08, 0.03]],
-      [0.18, 0.06, [0.22, 0.12, 0.04]],
-      [0.26, 0.04, [0.34, 0.20, 0.05]],
-      [0.32, 0.025, [0.55, 0.36, 0.07]],  // opening florets
-      [0.37, 0.015, [0.85, 0.60, 0.10]],  // pollen-dusted rim, one thin ring
+      [0.00, 0.08, [0.16, 0.09, 0.04]],   // dark centre
+      [0.08, 0.07, [0.20, 0.11, 0.04]],
+      [0.15, 0.055, [0.27, 0.15, 0.05]],
+      [0.21, 0.04, [0.38, 0.22, 0.06]],
+      [0.26, 0.025, [0.58, 0.38, 0.08]],  // opening florets
+      [0.30, 0.015, [0.85, 0.60, 0.10]],  // pollen-dusted rim
     ];
-    G.pos.push(0, 0.11, 0); G.col.push(0.09, 0.05, 0.02);
+    G.pos.push(0, 0.10, 0); G.col.push(0.13, 0.07, 0.03);
     for (const [rr, dy, c] of RING)
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
@@ -2249,7 +2438,7 @@ function sunflowerG() {
   }
   const g = bake(G);
   g.scale(0.58, 0.58, 0.58);          // head diameter ~23% of plant height (garden cultivars)
-  g.rotateX(-1.0);                     // nodding ~55 deg below vertical
+  g.rotateX(-1.62);                    // face ~3 deg below horizontal; per-plant nod adds +-12 deg
   g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
 }
@@ -3075,6 +3264,15 @@ document.querySelectorAll('#intro .enter button').forEach(b => b.addEventListene
   else setMode(m);
 }));
 setTimeout(introReady, 15000);        // never trap anyone behind a stuck loader
+{ // about / FAQ sheet
+  const ab = document.getElementById('about');
+  const open = e => { if (e) e.preventDefault(); ab.hidden = false; ab.scrollTop = 0; };
+  document.querySelectorAll('a[href="#about"]').forEach(a => a.addEventListener('click', open));
+  ab.querySelector('.close').addEventListener('click', () => { ab.hidden = true; });
+  ab.addEventListener('click', e => { if (e.target === ab) ab.hidden = true; });
+  addEventListener('keydown', e => { if (e.key === 'Escape') ab.hidden = true; });
+  if (location.hash === '#about') open();
+}
 // the reel plays behind the glass at sunrise; the clock takes over on enter
 setTimeout(() => document.querySelector('#timeChips button[data-t="6.6"]').click(), 0);   // after the chip handlers exist
 
@@ -3376,6 +3574,7 @@ if (window.visualViewport) visualViewport.addEventListener('resize', fitViewport
 if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(fitViewport, 150));
 fitViewport();
 window.CAM = camera;                   // debug handle
+window.R = renderer; window.SCENE = scene;   // debug: offscreen captures
 { // full screen: one tap in, the same button turns into a cross to leave.
   // iOS Safari has no element fullscreen, so the button hides itself there.
   const el = document.documentElement, b = document.getElementById('fsBtn');

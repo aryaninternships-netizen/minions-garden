@@ -1,0 +1,38 @@
+# Minion Bageecha
+
+> Minion Bageecha (bageecha is Hindi for garden) is a free 3D interactive garden that runs in a web browser. Seven kinds of flower grow in beds around a sunflower plaza, under a sky that follows your local clock. You can watch a cinematic drone reel, fly the drone yourself, walk the paths as a character, or steer with hand gestures through your webcam. Nothing to install.
+
+URL: https://minionbageecha.in/
+Author: Aryan Singh
+Stack: Three.js (WebGL), MediaPipe Hands, GSAP. Static site, no accounts, no tracking, free.
+
+## What grows here
+- Hibiscus: opens at dawn and is spent by evening, the way a real hibiscus flower lasts a single day
+- Jacob’s lily (Sprekelia): deep red, six-petalled, in the long beds
+- Raat ki rani (night-blooming jasmine): opens after dark, glows faintly, and draws the moths
+- Lilies: white, pink, orange and yellow, on the shore side
+- Sunflowers: a plaza of them in the centre; young heads follow the sun, mature heads face east
+- White and black roses: two full beds
+- Leaf rosettes: ornamental foliage hugging the plaza and the paths
+
+## How to explore
+- Watch the reel: cinematic drone loop.
+- Fly: drag to look, WASD or on-screen stick, Q/E or arrows for altitude.
+- Walk: third person, WASD or stick, shift to run.
+- Hands: webcam gestures. Pinch-drag steers, pull toward you flies forward, push away reverses, wrist roll banks, two pinches steer like a wheel, thumbs up is turbo, fist stops. Tracking is on-device.
+
+## FAQ
+- Q: What is Minion Bageecha?
+  A: Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install.
+- Q: How do I move around the garden?
+  A: Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run).
+- Q: How does hand-gesture control work?
+  A: Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device.
+- Q: Does it work on a phone?
+  A: Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best.
+- Q: Why does the light keep changing?
+  A: The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain.
+- Q: Do the flowers behave like real ones?
+  A: As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do.
+- Q: Who made Minion Bageecha?
+  A: Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character.
