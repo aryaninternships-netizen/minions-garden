@@ -388,8 +388,14 @@ let petals;
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  petals = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffc4d0,
-    size: 0.5, transparent: true, opacity: 0.75 }));
+  const pc = document.createElement('canvas'); pc.width = pc.height = 32;
+  const px = pc.getContext('2d');
+  const grd = px.createRadialGradient(16, 16, 2, 16, 16, 15);
+  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+  px.fillStyle = grd; px.fillRect(0, 0, 32, 32);
+  petals = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffd98a,
+    size: 0.22, map: new THREE.CanvasTexture(pc), transparent: true,
+    opacity: 0.7, depthWrite: false }));
   scene.add(petals);
 }
 function updatePetals(t, dt) {
@@ -1934,6 +1940,71 @@ function stemG(h, r, leaves, leafLen) {
   return bake(G);
 }
 
+function sunStemG(h, r) {
+  // Helianthus annuus: erect rough stem, 2-4 cm on a 2-3 m plant (about 1.5%
+  // of height), broad coarsely-toothed heart-shaped leaves, alternate, the
+  // lowest largest, drooping on long petioles. Vertex greens: dark base,
+  // lighter toward the tip, leaf undersides paler.
+  const G = newG();
+  const seg = 7, start = G.base;
+  for (let ring = 0; ring <= 2; ring++)
+    for (let i = 0; i <= seg; i++) {
+      const a = (i / seg) * Math.PI * 2;
+      const rr = r * (1 - ring * 0.18) * (1 + 0.08 * Math.sin(a * 3));   // ridged
+      G.pos.push(Math.cos(a) * rr, ring * h * 0.5, Math.sin(a) * rr);
+      const m = 0.7 + ring * 0.15;
+      G.col.push(0.13 * m, 0.28 * m, 0.10 * m);
+    }
+  for (let ring = 0; ring < 2; ring++)
+    for (let i = 0; i < seg; i++) {
+      const a = start + ring * (seg + 1) + i, b = a + seg + 1;
+      G.idx.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  G.base += 3 * (seg + 1);
+  const LEAVES = 5;
+  for (let l = 0; l < LEAVES; l++) {
+    const az = l * 2.399 + 0.5;                       // alternate: golden angle
+    const f = l / (LEAVES - 1);
+    const yb = h * (0.18 + 0.55 * f);
+    const L = 1.15 - 0.55 * f, W = 1.0 - 0.45 * f;    // lower leaves largest
+    const droop = 0.42 + 0.25 * f;                    // radians below horizontal
+    const ca = Math.cos(az), sa = Math.sin(az);
+    const pet = 0.32 * L;                             // petiole length
+    const NU = 4, NV = 4, s2 = G.base;
+    for (let iu = 0; iu <= NU; iu++) {
+      const u = iu / NU;
+      // cordate outline: widest at 30%, notched base, pointed tip
+      const w = W * Math.pow(Math.sin(Math.PI * Math.min(u * 0.9 + 0.1, 1)), 0.6)
+              * (u < 0.12 ? 0.55 + u * 3.7 : 1);
+      const d = pet + u * L;
+      const rise = -Math.sin(droop) * (u * L) - 0.18 * u * u * L;
+      for (let iv = 0; iv <= NV; iv++) {
+        const v = iv / NV * 2 - 1;
+        const lat = v * w * 0.5;
+        const sag = 0.10 * Math.abs(v) * w;           // midrib low, edges lift
+        G.pos.push(ca * d - sa * lat, yb + 0.06 * pet + rise + sag, sa * d + ca * lat);
+        const m = 0.62 + 0.30 * u - 0.12 * Math.abs(v);
+        G.col.push(0.16 * m, 0.38 * m, 0.13 * m);
+      }
+    }
+    for (let iu = 0; iu < NU; iu++)
+      for (let iv = 0; iv < NV; iv++) {
+        const a = s2 + iu * (NV + 1) + iv, b = a + NV + 1;
+        G.idx.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    G.base += (NU + 1) * (NV + 1);
+    // petiole: thin strip from stem to leaf base
+    const s3 = G.base;
+    G.pos.push(-sa * 0.02, yb, ca * 0.02, sa * 0.02, yb, -ca * 0.02,
+               ca * pet - sa * 0.02, yb + 0.06 * pet, sa * pet + ca * 0.02,
+               ca * pet + sa * 0.02, yb + 0.06 * pet, sa * pet - ca * 0.02);
+    for (let q = 0; q < 4; q++) G.col.push(0.18, 0.36, 0.14);
+    G.idx.push(s3, s3 + 2, s3 + 1, s3 + 1, s3 + 2, s3 + 3);
+    G.base += 4;
+  }
+  return bake(G);
+}
+
 // ---- species geometries --------------------------------------------------
 function hibiscusG() {                 // five broad flat petals + long column
   const G = newG();
@@ -1984,31 +2055,43 @@ function sunflowerG() {
   // florets at the rim, tight dark centre — and green bracts behind.
   const G = newG();
   // bracts peeking between the petals
-  whorl(G, 12, { len: 0.22, halfW: 0.09, spread: 118, curl: 0.02, y0: -0.03,
-                 shade0: 0.7, rgb: [0.22, 0.36, 0.16], NU: 2, NV: 2 });
+  // receptacle + phyllaries: the green back you see when a head nods away
+  disc(G, -0.06, 0.50, 18, -0.10, [0.20, 0.34, 0.14], [0.26, 0.42, 0.18]);
+  whorl(G, 14, { len: 0.30, halfW: 0.08, spread: 104, curl: 0.03, y0: -0.05,
+                 shade0: 0.7, rgb: [0.24, 0.40, 0.17], NU: 2, NV: 2 });
   // ray florets: SHORT, WIDE, tightly overlapping — the disc is roughly half
   // the head's diameter on a real sunflower, and the petals are ovals, not
   // needles. Two offset rows give the dense fringe.
-  whorl(G, 24, { len: 0.52, halfW: 0.125, spread: 91, curl: -0.04, cup: 0.02,
-                 y0: 0.015, shade0: 0.88, rgb: [1.0, 0.82, 0.10], NU: 3, NV: 2 });
-  whorl(G, 19, { len: 0.42, halfW: 0.105, spread: 84, curl: -0.02, cup: 0.02,
-                 y0: 0.035, az0: 0.131, shade0: 0.90,
-                 rgb: [0.99, 0.72, 0.06], NU: 3, NV: 2 });
+  // ray florets: ~30 in two rows, long narrow ligules (about 3.5:1), the
+  // outer row flatter and paler at the tips, the inner row lifted a touch
+  whorl(G, 21, { len: 0.62, halfW: 0.16, spread: 93, curl: -0.05, cup: 0.03,
+                 y0: 0.0, shade0: 0.80, rgb: [1.0, 0.80, 0.08], NU: 3, NV: 2 });
+  whorl(G, 17, { len: 0.54, halfW: 0.14, spread: 86, curl: -0.02, cup: 0.03,
+                 y0: 0.03, az0: 0.15, shade0: 0.84,
+                 rgb: [1.0, 0.70, 0.05], NU: 3, NV: 2 });
   // disc: dome in three floret rings
   {
-    const seg = 18, start = G.base;
+    const seg = 28, start = G.base;
+    // disc is ~60% of the head across, domed; florets open from the rim
+    // inward so only the outer ring carries pollen gold. Colours sit far
+    // below the rays on purpose: noon sun + specular lifts them 3-4x and a
+    // mid-brown reads as gold (that was v3's problem).
     const RING = [
-      [0.00, 0.15, [0.20, 0.13, 0.06]],   // tight dark centre
-      [0.18, 0.12, [0.33, 0.20, 0.08]],
-      [0.33, 0.07, [0.55, 0.35, 0.10]],   // opening florets
-      [0.45, 0.02, [0.85, 0.60, 0.12]],   // pollen-dusted rim
+      [0.00, 0.19, [0.05, 0.03, 0.02]],   // tight dark centre
+      [0.11, 0.17, [0.07, 0.04, 0.02]],
+      [0.22, 0.14, [0.11, 0.06, 0.03]],
+      [0.32, 0.10, [0.19, 0.11, 0.04]],
+      [0.40, 0.06, [0.36, 0.22, 0.06]],   // opening florets
+      [0.46, 0.03, [0.70, 0.46, 0.08]],   // pollen-dusted rim, one thin ring
     ];
-    G.pos.push(0, 0.17, 0); G.col.push(0.13, 0.08, 0.04);
+    G.pos.push(0, 0.21, 0); G.col.push(0.04, 0.025, 0.015);
     for (const [rr, dy, c] of RING)
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
-        // faint spiral texture: alternate florets a shade darker
-        const k = (i % 2 ? 0.88 : 1.06);
+        // parastichy texture: golden-angle phase per ring so the dark/light
+        // florets line up into the familiar crossing spirals
+        const ph = (i / seg) * 6.2832 + Math.round(rr * 40) * 2.39996;
+        const k = 0.78 + 0.34 * (0.5 + 0.5 * Math.sin(ph * 5.0));
         G.pos.push(Math.cos(a) * rr, 0.04 + dy, Math.sin(a) * rr);
         G.col.push(c[0] * k, c[1] * k, c[2] * k);
       }
@@ -2021,8 +2104,9 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.rotateX(-1.32);                    // near-horizontal, like a real field
-  g.translate(0, 0.15, 0);
+  g.scale(0.62, 0.62, 0.62);          // head ~20% of plant height (garden cultivars)
+  g.rotateX(-1.0);                     // nodding ~55 deg below vertical
+  g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
 }
 function roseG() {                     // three tightening whorls + heart
@@ -2065,7 +2149,7 @@ const SPECIES = [
   { name: 'lily', bloom: lilyG(), stem: stemG(2.6, 0.06, 3, 1.0),
     top: 2.8, cap: 8000, s: [0.9, 1.5],
     col: tint([0xffffff, 0xf5a8c8, 0xf0783a, 0xf5d848, 0xd84868]) },
-  { name: 'sunflower', bloom: sunflowerG(), stem: stemG(3.6, 0.09, 4, 1.3),
+  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.055),
     top: 3.9, cap: 1600, s: [1.2, 1.9],
     col: tint([0xfff2c8, 0xffe9b0]) },
   { name: 'rose', bloom: roseG(), stem: stemG(1.9, 0.05, 3, 0.55),
@@ -2089,6 +2173,9 @@ for (const sp of SPECIES) {
     specular: new THREE.Color(0x303030) });
   const stMat = new THREE.MeshLambertMaterial({ color: 0xffffff,
     vertexColors: true });
+  if (sp.name === 'sunflower') {       // rays and disc are matte, no waxy sheen
+    bloomMat.shininess = 5; bloomMat.specular.setHex(0x0c0c0c);
+  }
   if (MOBILE) sp.cap = Math.round(sp.cap * 0.38);
 sp.heads = new THREE.InstancedMesh(sp.bloom, bloomMat, sp.cap);
   sp.stems = new THREE.InstancedMesh(sp.stem, stMat, sp.cap);
@@ -2212,15 +2299,21 @@ for (let i = 0; i < tulipData.length; i++) setTulipMatrix(i);
 //  * raat ki rani opens and releases scent only after dark (moth-pollinated)
 const uSunYaw = { value: 0.9 };
 const uFold = { value: 0 };
-window.ECO = { uSunYaw, uFold };
+const uEastYaw = { value: 0.9 };   // set from the sunrise azimuth in updateSky
+window.ECO = { uSunYaw, uFold, uEastYaw };
 for (const sp of SPECIES) {
   sp.heads.instanceMatrix.needsUpdate = true;
   sp.stems.instanceMatrix.needsUpdate = true;
   if (sp.heads.instanceColor) sp.heads.instanceColor.needsUpdate = true;
   if (sp.stems.instanceColor) sp.stems.instanceColor.needsUpdate = true;
   if (sp.name === 'sunflower') {
-    tulipWindify(sp.heads.material, { u: { uSunYaw }, code: `
-       float cy = cos(uSunYaw), sy = sin(uSunYaw);
+    // Wikipedia/Atamian et al. 2016: heliotropism is a bud-stage habit; once
+    // the head is mature it locks facing east. Instance scale stands in for
+    // age: the small plants swing with the sun, the big ones hold east.
+    tulipWindify(sp.heads.material, { u: { uSunYaw, uEastYaw }, code: `
+       float age = clamp((length(instanceMatrix[0].xyz) - 1.35) / 0.3, 0.0, 1.0);
+       float yawH = mix(uSunYaw, uEastYaw, age);
+       float cy = cos(yawH), sy = sin(yawH);
        transformed.xz = mat2(cy, -sy, sy, cy) * transformed.xz;` });
   } else if (sp.name === 'hibiscus') {
     tulipWindify(sp.heads.material, { u: { uFold }, code: `
@@ -2233,6 +2326,7 @@ for (const sp of SPECIES) {
   tulipWindify(sp.stems.material);
 }
 console.log('garden:', SPECIES.map(s => s.name + ':' + s.heads.count).join(' '));
+window.TD = tulipData;                 // debug: instance list
 
 
 // ---------- walking character: articulated 3D girl ----------
@@ -3095,6 +3189,7 @@ if (window.visualViewport) visualViewport.addEventListener('resize', fitViewport
 if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(fitViewport, 150));
 fitViewport();
 window.CAM = camera;                   // debug handle
+window.DBG = { dronePos, look: (y, p) => { yaw = y; pitch = p; } };   // debug: teleport free cam
 if (MOBILE && innerWidth < innerHeight) {
   const r = document.getElementById('rotHint');
   r.classList.add('show');
