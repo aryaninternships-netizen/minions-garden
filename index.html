@@ -240,6 +240,7 @@
   #about h4 { font: 500 .95rem Inter, sans-serif; margin: 16px 0 4px; }
   #about p, #about li { font: 400 .92rem/1.6 Inter, sans-serif; color: rgba(247,242,234,.86); }
   #about ul { padding-left: 18px; } #about li { margin: 4px 0; } #about li b { color: #f7f2ea; font-weight: 500; }
+  #build { display: block; margin-top: 6px; font: 400 .7rem ui-monospace, Menlo, monospace; opacity: .6; }
   #about .made { margin-top: 30px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.14); font-size: .8rem; color: rgba(247,242,234,.6); }
   #intro .foot a, #title a { color: #ffe1b8; text-decoration: none; border-bottom: 1px solid rgba(255,225,184,.4); }
   @media (max-width: 560px) { #about .sheet { padding: 28px 20px 24px; } #about h2 { font-size: 1.6rem; } }
@@ -499,7 +500,7 @@
         <li><b>Hands</b>: allow the camera, then pinch and drag to steer, pull toward you to fly forward, push away to reverse, roll the wrist to bank, two pinches for a steering wheel, thumbs up for turbo, fist to stop.</li></ul>
     <h3>Questions people ask</h3>
     <h4>What is Minion Bageecha?</h4><p>Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install.</p><h4>How do I move around the garden?</h4><p>Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run).</p><h4>How does hand-gesture control work?</h4><p>Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device.</p><h4>Does it work on a phone?</h4><p>Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best.</p><h4>Why does the light keep changing?</h4><p>The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain.</p><h4>Do the flowers behave like real ones?</h4><p>As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do.</p><h4>Who made Minion Bageecha?</h4><p>Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character.</p>
-    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser.</p>
+    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser. <span id="build">build 2026-09-11 20:11 IST</span></p>
   </article>
 </section>
 <div id="hud">
@@ -2668,6 +2669,7 @@ for (const sp of SPECIES) {
   tulipWindify(sp.stems.material);
 }
 console.log('garden:', SPECIES.map(s => s.name + ':' + s.heads.count).join(' '));
+console.log('build 2026-09-11 20:11 IST');
 window.TD = tulipData;                 // debug: instance list
 document.getElementById('introBar').style.width = '70%';
 document.getElementById('introMsg').textContent = 'planting';
