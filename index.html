@@ -8,7 +8,7 @@
 <style>
   * { margin: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden;
-    font-family: Inter, system-ui, sans-serif; background: #cfe6f5; }
+    font-family: Inter, system-ui, sans-serif; background: #4a5e66; }
   canvas { display: block; }
 
   canvas { filter: saturate(1.16) contrast(1.09) brightness(1.03); }
@@ -130,6 +130,8 @@
     font: 500 .72rem ui-monospace, Menlo, monospace; opacity: .55;
     text-shadow: 0 1px 4px rgba(0,0,0,.6); }
 
+  #hint { transition: opacity .6s; }
+  body.mobile #hint.gone { opacity: 0; }
   #hint { position: absolute; bottom: 82px; left: 50%; transform: translateX(-50%);
     color: rgba(255,255,255,.9); font: 400 .74rem Inter, sans-serif;
     letter-spacing: .01em; text-shadow: 0 1px 8px rgba(0,0,0,.5);
@@ -2896,6 +2898,8 @@ function setMode(m) {
   }
   document.body.classList.toggle('cine', m === 'walk');   // letterbox
   document.body.dataset.mode = m;
+  { const h = document.getElementById('hint'); h.classList.remove('gone');
+    clearTimeout(h._t); h._t = setTimeout(() => h.classList.add('gone'), 5000); }
   if (MOBILE) document.getElementById('hint').textContent = m === 'walk'
     ? 'stick walks (push to edge to run) · drag to look · tap a bloom to pluck'
     : m === 'free' ? 'stick flies · ▲▼ altitude · drag to look · ✋ Hands works too'
@@ -3007,11 +3011,14 @@ function updateCamera(t, dt) {
     const gy = terrainH(walker.x, walker.z);
     const back = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
     const camRight = new THREE.Vector3(back.z, 0, -back.x);
-    const dist = running ? 13 : 11;
+    // phones sit further back and more over the shoulder: the tall/wide
+    // frame otherwise fills with her back
+    const dist = (running ? 13 : 11) + (MOBILE ? 4 : 0);
+    const side = MOBILE ? 3.6 : 2.6;
     const target = new THREE.Vector3(
-      walker.x + back.x * dist + camRight.x * 2.6,
+      walker.x + back.x * dist + camRight.x * side,
       gy + GIRL_H * (0.92 + pitch * -0.9) + 0.25 * Math.sin(t * 1.7),
-      walker.z + back.z * dist + camRight.z * 2.6);
+      walker.z + back.z * dist + camRight.z * side);
     camera.position.lerp(target, 1 - Math.exp(-dt * 4.5));   // camera lag
     camera.lookAt(walker.x - back.x * 9 + camRight.x * 1.2,
                   gy + GIRL_H * 0.60,
@@ -3254,6 +3261,7 @@ function updateWetness(dt) {
 
 const fpsEl = document.getElementById('fps');
 let fpsFrames = 0, fpsLast = 0;
+const adapt = { slow: 0, fast: 0, last: 0 };
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
@@ -3294,13 +3302,20 @@ renderer.setAnimationLoop(() => {
     fpsEl.textContent = Math.round(fps) + ' fps';
     fpsFrames = 0; fpsLast = t;
     if (MOBILE && document.visibilityState === 'visible') {
-      // adaptive resolution: step the pixel ratio down while the phone
-      // struggles, back up when it has headroom.
+      // adaptive resolution. Every setPixelRatio recreates the canvas buffer
+      // and paints one cleared frame, which the eye reads as a white blink,
+      // so: at most one step per 6 s, only after two slow windows in a row,
+      // and a wide band (down under 34, up only above 58) so it settles.
+      adapt.slow = fps < 34 ? adapt.slow + 1 : 0;
+      adapt.fast = fps > 58 ? adapt.fast + 1 : 0;
       const cur = renderer.getPixelRatio();
       let want = cur;
-      if (fps < 38 && cur > 0.6) want = cur - 0.1;
-      else if (fps > 56 && cur < Math.min(devicePixelRatio, 1.0)) want = cur + 0.05;
-      if (Math.abs(want - cur) > 0.01) renderer.setPixelRatio(want);
+      if (adapt.slow >= 2 && cur > 0.6) want = cur - 0.15;
+      else if (adapt.fast >= 6 && cur < Math.min(devicePixelRatio, 1.0)) want = cur + 0.1;
+      if (Math.abs(want - cur) > 0.01 && t - adapt.last > 6) {
+        renderer.setPixelRatio(Math.min(want, 1.0));
+        adapt.last = t; adapt.slow = adapt.fast = 0;
+      }
     }
   }
 });
