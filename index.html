@@ -175,15 +175,12 @@
   #intro .flora { margin: 18px auto 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
   #intro .flora span { font-size: .72rem; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px;
     background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
-  #intro .enter { margin-top: 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  #intro .enter button { border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 14px 8px 12px;
-    background: rgba(255,255,255,.10); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); color: #f4efe6; cursor: pointer; font: 500 .82rem Inter, sans-serif;
-    display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background .2s, transform .2s;
-    -webkit-tap-highlight-color: transparent; }
-  #intro .enter button b { font-size: 1.7rem; line-height: 1; }
-  #intro .enter button small { opacity: .6; font-size: .66rem; font-weight: 400; }
-  #intro .enter button:hover { background: rgba(255,255,255,.16); transform: translateY(-2px); }
-  #intro .enter button.primary { background: var(--accent); color: #1b1408; border-color: transparent; }
+  #intro .enter { margin-top: 26px; display: flex; justify-content: center; }
+  #intro .enter button { border: 0; border-radius: 999px; padding: 12px 30px; cursor: pointer;
+    font: 600 .92rem Inter, sans-serif; letter-spacing: .01em; color: #1b1408; background: var(--accent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 30px rgba(0,0,0,.35);
+    transition: transform .2s, filter .2s; -webkit-tap-highlight-color: transparent; }
+  #intro .enter button:hover { transform: translateY(-2px); filter: brightness(1.06); }
   #intro .enter button:disabled { opacity: .35; cursor: wait; transform: none; }
   #intro .load { margin-top: 22px; font: 500 .72rem ui-monospace, Menlo, monospace; opacity: .7; }
   #intro .bar { height: 3px; width: 200px; margin: 8px auto 0; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
@@ -193,8 +190,6 @@
   #hud { transition: opacity .6s; }
   @media (max-width: 560px) {
     #intro .card { padding: 24px 18px 18px; }
-    #intro .enter { grid-template-columns: repeat(2, 1fr); }
-    #intro .enter button small { display: none; }
   }
   @media (max-height: 460px) {
     #intro h1 { font-size: 2rem; } #intro .flora, #intro .about { display: none; }
@@ -282,12 +277,7 @@
     <div class="tag">a digital interactive garden containing these flowers</div>
     <div class="flora"><span>hibiscus</span><span>jacob's lily</span><span>raat ki rani</span><span>lilies</span><span>sunflowers</span><span>white &amp; black roses</span><span>leaf rosettes</span></div>
     <p class="about">A wheel of seven beds around a sunflower plaza, ringed by a lake and pine hills. Hibiscus that open for a single day, jacob's lilies, raat ki rani that glows after dark and draws the moths, lilies, roses in white and black, rosettes of leaf. Young sunflowers follow the sun, the old ones face east. Sky, rain and stars follow your clock.</p>
-    <div class="enter">
-      <button class="primary" data-m="drone" disabled><b>🎬</b>Watch the reel<small>sit back, cinematic</small></button>
-      <button data-m="free" disabled><b>🚁</b>Fly<small>drone, you steer</small></button>
-      <button data-m="walk" disabled><b>🚶</b>Walk<small>third person</small></button>
-      <button data-m="hands" disabled><b>✋</b>Hands<small>webcam gestures</small></button>
-    </div>
+    <div class="enter"><button data-m="drone" disabled>Explore garden</button></div>
     <div class="load" id="introMsg">growing the garden…</div>
     <div class="bar"><i id="introBar"></i></div>
     <div class="foot">Live sky follows your clock · rain, sunrise and night are real · runs best in landscape on phones</div>
@@ -3006,7 +2996,7 @@ document.getElementById('mHands').onclick = () => enableHands();
 // ---------- start screen ----------
 function introReady() {
   document.getElementById('introBar').style.width = '100%';
-  document.getElementById('introMsg').textContent = 'ready · pick how you want in';
+  document.getElementById('introMsg').textContent = 'ready';
   document.querySelectorAll('#intro .enter button').forEach(b => b.disabled = false);
 }
 document.querySelectorAll('#intro .enter button').forEach(b => b.addEventListener('click', () => {
