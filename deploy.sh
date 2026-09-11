@@ -10,11 +10,13 @@ GT=$(gh auth token -u aryaninternships-netizen)
 MSG="${1:-Update}"
 # stamp the build so a stale browser copy is obvious
 python3 - "$MSG" <<'PY'
-import re, datetime, sys
-p = 'index.html'; s = open(p).read()
-s = re.sub(r'build 2026-\d\d-\d\d \d\d:\d\d IST',
-           'build ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M IST'), s)
-open(p, 'w').write(s)
+import re, datetime, json
+stamp = 'build ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M IST')
+s = open('index.html').read()
+s = re.sub(r'build 2026-\d\d-\d\d \d\d:\d\d IST', stamp, s)
+open('index.html', 'w').write(s)
+# the running page polls this to notice it has gone stale
+json.dump({'build': stamp}, open('version.json', 'w'))
 PY
 git add -A && git commit -qm "$MSG" || echo "(nothing to commit)"
 REM=$(git remote get-url origin)

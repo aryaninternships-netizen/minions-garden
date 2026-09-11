@@ -307,6 +307,19 @@
   body.mobile[data-mode="free"] #basket, body.mobile[data-mode="walk"] #basket { left: 50%; }
   body.mobile #bouquetModal .box { padding: 22px 18px; max-width: 92vw; }
   body.mobile #bouquetSvg { width: 200px; height: 230px; }
+  #newBuild { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(150%);
+    z-index: 40; display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 18px;
+    border-radius: 999px; background: rgba(20,22,28,.82); color: #f7f2ea;
+    border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(14px);
+    box-shadow: 0 16px 44px rgba(0,0,0,.45); font: 400 .82rem Inter, sans-serif;
+    transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+  #newBuild.show { transform: translateX(-50%) translateY(0); }
+  #newBuild button { border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer;
+    font: 500 .8rem Inter, sans-serif; background: #f7f2ea; color: #17140f; }
+  #about .cachebtn { margin-top: 14px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+    padding: 9px 18px; cursor: pointer; font: 500 .82rem Inter, sans-serif;
+    background: rgba(255,255,255,.08); color: #f7f2ea; }
+  #about .cachebtn:hover { background: rgba(255,255,255,.16); }
   #rotHint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     padding: 10px 18px; border-radius: 999px; background: rgba(12,14,20,.6);
     color: #fff; font: 500 .8rem Inter, sans-serif; border: 1px solid var(--edge);
@@ -500,7 +513,8 @@
         <li><b>Hands</b>: allow the camera, then pinch and drag to steer, pull toward you to fly forward, push away to reverse, roll the wrist to bank, two pinches for a steering wheel, thumbs up for turbo, fist to stop.</li></ul>
     <h3>Questions people ask</h3>
     <h4>What is Minion Bageecha?</h4><p>Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install.</p><h4>How do I move around the garden?</h4><p>Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run).</p><h4>How does hand-gesture control work?</h4><p>Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device.</p><h4>Does it work on a phone?</h4><p>Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best.</p><h4>Why does the light keep changing?</h4><p>The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain.</p><h4>Do the flowers behave like real ones?</h4><p>As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do.</p><h4>Who made Minion Bageecha?</h4><p>Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character.</p>
-    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser. <span id="build">build 2026-09-11 21:04 IST</span></p>
+    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser. <span id="build">build 2026-09-11 21:08 IST</span></p>
+    <button class="cachebtn" id="clearCache">Clear cache and reload</button>
   </article>
 </section>
 <div id="hud">
@@ -538,6 +552,7 @@
     <div id="handGesture" class="g-none">none</div>
 <div id="handMsg">starting…</div>
   </div>
+  <div id="newBuild"><span>A newer version of the garden is live.</span><button id="nbGo">Refresh</button></div>
   <div id="rotHint">📱↻ rotate for the wide view</div>
   <div id="stick" class="panel"><div id="knob"></div></div>
   <div id="alt" class="panel"><button id="altUp">▲</button><button id="altDn">▼</button></div>
@@ -2680,7 +2695,7 @@ for (const sp of SPECIES) {
   tulipWindify(sp.stems.material);
 }
 console.log('garden:', SPECIES.map(s => s.name + ':' + s.heads.count).join(' '));
-console.log('build 2026-09-11 21:04 IST');
+console.log('build 2026-09-11 21:08 IST');
 window.TD = tulipData;                 // debug: instance list
 document.getElementById('introBar').style.width = '70%';
 document.getElementById('introMsg').textContent = 'planting';
@@ -3277,6 +3292,41 @@ document.querySelectorAll('#intro .enter button').forEach(b => b.addEventListene
   else setMode(m);
 }));
 setTimeout(introReady, 15000);        // never trap anyone behind a stuck loader
+// ---------- build freshness ----------
+// The whole app is one HTML file, so a browser holding an old copy looks exactly
+// like a failed deploy. version.json is tiny and fetched with no-store, so the
+// page can tell when it is stale and offer to clear itself out.
+{
+  const BUILD = (document.getElementById('build') || {}).textContent || '';
+  const toast = document.getElementById('newBuild');
+  async function hardReload() {
+    try { if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); } } catch {}
+    try { if (navigator.serviceWorker) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); } } catch {}
+    try { sessionStorage.clear(); } catch {}
+    const u = new URL(location.href);
+    u.searchParams.set('v', Date.now());     // a query the browser has never cached
+    location.replace(u.toString());
+  }
+  document.getElementById('nbGo').addEventListener('click', hardReload);
+  document.getElementById('clearCache').addEventListener('click', hardReload);
+  async function checkBuild() {
+    if (!BUILD || document.visibilityState !== 'visible') return;
+    try {
+      const r = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j.build && j.build !== BUILD) toast.classList.add('show');
+    } catch {}
+  }
+  setTimeout(checkBuild, 4000);
+  setInterval(checkBuild, 5 * 60 * 1000);
+  addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBuild(); });
+  // tidy the cache-busting query back out of the address bar
+  if (location.search.includes('v=')) {
+    const u = new URL(location.href); u.searchParams.delete('v');
+    history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+  }
+}
 { // about / FAQ sheet
   const ab = document.getElementById('about');
   const open = e => { if (e) e.preventDefault(); ab.hidden = false; ab.scrollTop = 0; };
