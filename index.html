@@ -280,7 +280,7 @@ const MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
 if (MOBILE) document.body.classList.add('mobile');
 window.MOBILE = MOBILE;
 scene.fog = new THREE.Fog(0xcfe6f5, 430, 1500);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.0 : 1.25));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = !MOBILE;    // shadow pass costs a full extra draw of the field
@@ -413,7 +413,7 @@ function updatePetals(t, dt) {
 // Behaviour: wander, pick a bloom, approach, land and bask, take off again.
 // Population follows the day — none before dawn or after dusk, and they
 // shelter in the rain, which is what real butterflies do.
-const BFLY = 101;                      // population over the whole field
+const BFLY = MOBILE ? 40 : 101;                      // population over the whole field
 const UNIT_CM = 13;
 // 13cm span (a big swallowtail) reads clearly without looking cartoonish
 const BFLY_SCALE = (13 / UNIT_CM) / 2.1;
@@ -885,7 +885,7 @@ function updateSky() {
 }
 
 // ---------- rain ----------
-const RAIN_N = 3500;
+const RAIN_N = MOBILE ? 1400 : 3500;
 let rain;
 {
   const pts = new Float32Array(RAIN_N * 3);
@@ -1601,6 +1601,7 @@ let fogMesh = null, fogData = [];
     { n: 60, r0: 560, r1: 780, y0: 26, y1: 70, s0: 90,  s1: 160 },
     { n: 40, r0: 640, r1: 900, y0: 60, y1: 130, s0: 120, s1: 210 },
   ];
+  if (MOBILE) BANDS.forEach(b => b.n = Math.round(b.n * 0.45));   // 320-wide billboards = overdraw
   const total = BANDS.reduce((s, b) => s + b.n, 0);
   const quad = new THREE.PlaneGeometry(1, 1);
   const alphaAttr = new THREE.InstancedBufferAttribute(
@@ -2464,7 +2465,7 @@ async function enableHands() {
   handHUD('starting camera…');
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480, facingMode: 'user' }, audio: false });
+      video: { width: MOBILE ? 320 : 640, height: MOBILE ? 240 : 480, facingMode: 'user' }, audio: false });
     hand.video = document.getElementById('handVideo');
     hand.video.srcObject = stream;
     await hand.video.play();
@@ -2512,11 +2513,13 @@ function euro(slot, key, v, t, minCut, beta, snap = 0.12) {
 
 function readHands(t) {
   if (!hand.on || !hand.lm || !hand.video || hand.video.readyState < 2) return null;
+  hand.fr = (hand.fr | 0) + 1;
+  if (MOBILE && (hand.fr & 1)) return hand.last || null;   // phones: track every other frame
   let res;
   try { res = hand.lm.detectForVideo(hand.video, t * 1000); }
   catch { return null; }
   if (!res || !res.landmarks || !res.landmarks.length) {
-    hand.seen = 0;
+    hand.seen = 0; hand.last = null;
     hand.filters.forEach(f => Object.values(f).forEach(o => o.reset()));
     if (hand.ctx) hand.ctx.clearRect(0, 0, hand.canvas.width, hand.canvas.height);
     return null;
@@ -2558,6 +2561,7 @@ function readHands(t) {
     };
   });
   drawHands(hands);
+  hand.last = hands;
   return hands;
 }
 
@@ -3140,12 +3144,26 @@ renderer.setAnimationLoop(() => {
   // bloom swells at golden hour / dims in rain
   bloom.strength = (weather === 'rain' ? 0.14 : 0.22) +
     Math.max(0, 0.25 - Math.abs(lastElev)) * 0.26;
-  composer.render();
+  if (MOBILE) {
+    // no post chain on phones: bloom alone is 4 fullscreen passes. Direct
+    // render keeps tone mapping + MSAA and drops most of the fill cost.
+    renderer.render(scene, camera);
+  } else composer.render();
   // live fps readout
   fpsFrames++;
   if (t - fpsLast > 0.5) {
-    fpsEl.textContent = Math.round(fpsFrames / (t - fpsLast)) + ' fps';
+    const fps = fpsFrames / (t - fpsLast);
+    fpsEl.textContent = Math.round(fps) + ' fps';
     fpsFrames = 0; fpsLast = t;
+    if (MOBILE && document.visibilityState === 'visible') {
+      // adaptive resolution: step the pixel ratio down while the phone
+      // struggles, back up when it has headroom.
+      const cur = renderer.getPixelRatio();
+      let want = cur;
+      if (fps < 38 && cur > 0.6) want = cur - 0.1;
+      else if (fps > 56 && cur < Math.min(devicePixelRatio, 1.0)) want = cur + 0.05;
+      if (Math.abs(want - cur) > 0.01) renderer.setPixelRatio(want);
+    }
   }
 });
 </script>
