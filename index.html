@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Minions Garden 3D</title>
+<title>Minion Bageecha</title>
 <meta name="description" content="Minions Garden: a 3D garden of hibiscus, lilies, sunflowers, roses and raat ki rani you can fly, walk and steer with your hands.">
 <meta name="theme-color" content="#4a5e66">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta property="og:title" content="Minions Garden 3D">
+<meta property="og:title" content="Minion Bageecha">
 <meta property="og:description" content="Seven flowers, one wild lawn. Fly it, walk it, or steer with your hands.">
 <meta property="og:url" content="https://minionbageecha.in/">
 <meta property="og:type" content="website">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Rozha+One&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden;
@@ -150,51 +150,64 @@
 
   /* ---------- start screen ---------- */
   #intro { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
-    background: linear-gradient(to bottom, rgba(8,10,16,.10), rgba(8,10,16,.34));
-    color: #f7f2ea; text-align: center; padding: 20px; overflow-y: auto;
+    background: linear-gradient(to bottom, rgba(8,10,16,.08), rgba(8,10,16,.36));
+    color: #f7f2ea; padding: 20px; overflow-y: auto;
     transition: opacity .8s ease, visibility .8s; }
   #intro.out { opacity: 0; visibility: hidden; pointer-events: none; }
-  /* liquid glass: thick blur, bright top edge, a slow specular sheen */
-  #intro .card { position: relative; max-width: 680px; width: 100%; padding: 34px 34px 26px;
-    border-radius: 30px; overflow: hidden;
-    background: linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.06) 45%, rgba(255,255,255,.12));
-    backdrop-filter: blur(26px) saturate(1.7); -webkit-backdrop-filter: blur(26px) saturate(1.7);
-    border: 1px solid rgba(255,255,255,.28);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(255,255,255,.08),
-                inset 1px 0 0 rgba(255,255,255,.18), 0 30px 90px rgba(0,0,0,.40); }
-  #intro .card::before { content: ""; position: absolute; inset: -60%; pointer-events: none;
-    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
-    animation: sheen 7s ease-in-out infinite; }
-  @keyframes sheen { 0% { transform: translateX(-35%) } 100% { transform: translateX(35%) } }
-  #intro .card > * { position: relative; }
-  #intro .about { margin: 16px auto 0; max-width: 560px; font-size: clamp(.82rem, 2.2vw, .93rem);
-    line-height: 1.55; opacity: .92; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
-  #intro h1 { font-family: Fraunces, serif; font-weight: 600; letter-spacing: -.02em;
-    font-size: clamp(2.4rem, 8vw, 4.4rem); line-height: 1; text-shadow: 0 4px 30px rgba(0,0,0,.5); }
-  #intro .tag { margin-top: 10px; font-size: clamp(.9rem, 2.6vw, 1.1rem); opacity: .85; }
-  #intro .flora { margin: 18px auto 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-  #intro .flora span { font-size: .72rem; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px;
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
-  #intro .enter { margin-top: 26px; display: flex; justify-content: center; }
-  #intro .enter button { border: 0; border-radius: 999px; padding: 12px 30px; cursor: pointer;
-    font: 600 .92rem Inter, sans-serif; letter-spacing: .01em; color: #1b1408; background: var(--accent);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 30px rgba(0,0,0,.35);
-    transition: transform .2s, filter .2s; -webkit-tap-highlight-color: transparent; }
-  #intro .enter button:hover { transform: translateY(-2px); filter: brightness(1.06); }
-  #intro .enter button:disabled { opacity: .35; cursor: wait; transform: none; }
-  #intro .load { margin-top: 22px; font: 500 .72rem ui-monospace, Menlo, monospace; opacity: .7; }
-  #intro .bar { height: 3px; width: 200px; margin: 8px auto 0; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
-  #intro .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .5s; }
-  #intro .foot { margin-top: 26px; font-size: .66rem; opacity: .45; }
+  #intro .card { position: relative; width: min(540px, 100%); padding: 42px 46px 34px;
+    border-radius: 22px; text-align: left;
+    background: linear-gradient(160deg, rgba(20,22,28,.42), rgba(20,22,28,.58));
+    backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 40px 100px rgba(0,0,0,.45); }
+  #intro .eyebrow { font: 500 .66rem Inter, sans-serif; letter-spacing: .2em; text-transform: uppercase;
+    opacity: .58; }
+  #intro h1 { margin-top: 14px; font-family: Fraunces, serif; font-weight: 500; letter-spacing: -.02em;
+    font-size: clamp(2.5rem, 7vw, 3.7rem); line-height: .98; }
+  #intro .deck { margin-top: 14px; font-family: Fraunces, serif; font-style: italic; font-weight: 400;
+    font-size: clamp(1.05rem, 3vw, 1.3rem); line-height: 1.3; color: #ffe1b8; }
+  #intro hr { border: 0; height: 1px; background: rgba(255,255,255,.16); margin: 24px 0 20px; }
+  #intro .body { font: 400 .92rem/1.62 Inter, sans-serif; color: rgba(247,242,234,.86); }
+  #intro .flowers { margin-top: 18px; font: 400 .8rem/1.6 Inter, sans-serif; letter-spacing: .01em;
+    color: rgba(247,242,234,.6); }
+  #intro .enter { margin-top: 30px; display: flex; align-items: center; gap: 18px; }
+  #intro .enter button { border: 0; border-radius: 999px; padding: 12px 22px 12px 24px; cursor: pointer;
+    font: 500 .9rem Inter, sans-serif; color: #17140f; background: #f7f2ea;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: transform .2s, background .2s; -webkit-tap-highlight-color: transparent; }
+  #intro .enter button i { font-style: normal; transition: transform .2s; }
+  #intro .enter button:hover { background: #fff; transform: translateY(-1px); }
+  #intro .enter button:hover i { transform: translateX(3px); }
+  #intro .enter button:disabled { opacity: .5; cursor: wait; transform: none; }
+  #intro .load { font: 400 .74rem Inter, sans-serif; color: rgba(247,242,234,.55); }
+  #intro .bar { position: absolute; left: 46px; right: 46px; bottom: 0; height: 1px;
+    background: rgba(255,255,255,.10); overflow: hidden; }
+  #intro .bar i { display: block; height: 100%; width: 0; background: #ffe1b8; transition: width .6s; }
+  #intro .foot { margin-top: 26px; font: 400 .7rem Inter, sans-serif; color: rgba(247,242,234,.42); }
+  /* the Hindi word: hand-lettered outlines (Kalam) drawn on with GSAP, then filled */
+  .hi { font-family: 'Rozha One', 'Tiro Devanagari Hindi', serif; font-weight: 400; }
+  #intro h1.calli { display: flex; align-items: baseline; gap: .22em; flex-wrap: wrap; }
+  #intro h1 .en b { display: inline-block; font-weight: 500; }
+  #intro .hiw { height: 1.28em; width: auto; overflow: visible; margin-bottom: -.38em; }   /* baseline sits 24% up the box (swash room below) */
+  #intro .hiw .g { fill: url(#inkG); fill-opacity: 0; stroke: #ffe1b8; stroke-width: 16; stroke-linejoin: round; stroke-linecap: round; }
+  #intro .hiw .sw { fill: none; stroke: #ffe1b8; stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+  #intro .hiw .sw2 { stroke-width: 26; }
+  #intro .hiw.ready .g { fill-opacity: 1; }
+  #title h1 .hi { color: #ffe1b8; }
   body.intro #hud { opacity: 0; pointer-events: none; }
   #hud { transition: opacity .6s; }
   @media (max-width: 560px) {
-    #intro .card { padding: 24px 18px 18px; }
+    #intro { padding: 14px; align-items: end; }
+    #intro .card { padding: 28px 24px 24px; border-radius: 20px; }
+    #intro .bar { left: 24px; right: 24px; }
+    #intro hr { margin: 18px 0 14px; }
+    #intro .body { font-size: .88rem; }
   }
   @media (max-height: 460px) {
-    #intro h1 { font-size: 2rem; } #intro .flora, #intro .about { display: none; }
-    #intro .card { padding: 16px 18px 12px; }
-    #intro .enter { margin-top: 14px; } #intro .foot { display: none; }
+    #intro .card { padding: 18px 24px 16px; width: min(640px, 100%); }
+    #intro h1 { font-size: 2rem; margin-top: 6px; }
+    #intro .body, #intro .foot, #intro hr { display: none; }
+    #intro .flowers { margin-top: 8px; } #intro .enter { margin-top: 14px; }
   }
   /* ---------- mobile: touch controls, lighter HUD ---------- */
   #stick { display: none; position: absolute; left: 18px; bottom: 18px;
@@ -273,19 +286,29 @@
 <div id="barTop" class="bar"></div><div id="barBot" class="bar"></div>
 <div id="intro">
   <div class="card">
-    <h1>Minions Garden</h1>
-    <div class="tag">a digital interactive garden containing these flowers</div>
-    <div class="flora"><span>hibiscus</span><span>jacob's lily</span><span>raat ki rani</span><span>lilies</span><span>sunflowers</span><span>white &amp; black roses</span><span>leaf rosettes</span></div>
-    <p class="about">A wheel of seven beds around a sunflower plaza, ringed by a lake and pine hills. Hibiscus that open for a single day, jacob's lilies, raat ki rani that glows after dark and draws the moths, lilies, roses in white and black, rosettes of leaf. Young sunflowers follow the sun, the old ones face east. Sky, rain and stars follow your clock.</p>
-    <div class="enter"><button data-m="drone" disabled>Explore garden</button></div>
-    <div class="load" id="introMsg">growing the garden…</div>
+    <div class="eyebrow">A garden, on the web</div>
+    <h1 class="calli"><span class="en"><b>M</b><b>i</b><b>n</b><b>i</b><b>o</b><b>n</b></span>
+    <svg class="hiw" viewBox="-40 -1080 3120 1420" aria-label="बगीचा" role="img">
+      <defs><linearGradient id="inkG" x1="0" x2="1"><stop offset="0" stop-color="#ffe1b8"/><stop offset=".5" stop-color="#f7c826"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs>
+      <g class="word"><path class="g" d="M91 -662H743Q777 -662 794.0 -647.0Q811 -632 811.0 -609.5Q811 -587 793.5 -570.5Q776 -554 743 -554H620Q615 -473 578 -283Q523 1 453 1Q434 1 423.5 -16.0Q413 -33 413.0 -53.0Q413 -73 415.0 -97.5Q417 -122 417 -126Q322 -67 211 -67Q63 -67 63 -219Q63 -285 95.0 -353.0Q127 -421 184.0 -467.5Q241 -514 306.0 -514.0Q371 -514 413.5 -454.5Q456 -395 470 -313Q478 -349 489 -432Q502 -530 509 -554H91Q57 -554 39.5 -569.5Q22 -585 22 -610Q22 -662 91 -662ZM292 -403Q277 -403 257 -385Q320 -302 397 -225L402 -228Q385 -302 355.0 -352.5Q325 -403 292 -403ZM183 -224Q183 -172 224 -172Q274 -172 326 -192Q263 -243 205 -307Q183 -260 183 -224Z"/><path class="g" d="M764 -662H1419Q1453 -662 1470.0 -647.0Q1487 -632 1487.0 -609.5Q1487 -587 1469.5 -570.5Q1452 -554 1419 -554H1305Q1299 -489 1275.0 -383.0Q1251 -277 1238.5 -219.0Q1226 -161 1219.0 -130.5Q1212 -100 1203 -64Q1185 3 1164 3Q1146 3 1117.5 -27.5Q1089 -58 1089 -88Q1089 -97 1097 -130Q1127 -265 1132 -306Q1143 -385 1169 -554H1054Q1057 -529 1057.0 -488.0Q1057 -447 1052.0 -394.5Q1047 -342 1034.0 -287.0Q1021 -232 1001.0 -190.5Q981 -149 948.5 -122.5Q916 -96 876 -96Q815 -96 762.5 -162.0Q710 -228 710 -294Q710 -408 881 -408Q906 -408 933 -405Q937 -452 937.0 -495.5Q937 -539 938 -554H764Q730 -554 712.5 -569.5Q695 -585 695 -610Q695 -662 764 -662ZM870 -206Q902 -206 921 -308Q900 -311 883 -311Q823 -311 823 -281Q823 -264 839.0 -235.0Q855 -206 870 -206Z"/><path class="g" d="M1716 -662Q1750 -662 1767.0 -647.0Q1784 -632 1784.0 -609.5Q1784 -587 1766.5 -570.5Q1749 -554 1716 -554H1600Q1585 -411 1561.5 -295.5Q1538 -180 1526.5 -141.5Q1515 -103 1500.5 -68.5Q1486 -34 1469.5 -16.0Q1453 2 1435.0 2.0Q1417 2 1407.5 -13.5Q1398 -29 1398.0 -60.0Q1398 -91 1432.5 -260.5Q1467 -430 1478 -554H1160Q1126 -554 1108.5 -569.5Q1091 -585 1091 -610Q1091 -662 1160 -662H1209Q1235 -766 1315.5 -873.5Q1396 -981 1469.5 -981.0Q1543 -981 1576.5 -915.0Q1610 -849 1610 -747Q1610 -720 1608 -662ZM1486 -715Q1486 -849 1461 -849Q1443 -849 1399.5 -787.0Q1356 -725 1328 -662H1485Q1486 -679 1486 -715Z"/><path class="g" d="M1835 -466 1988 -468Q2039 -468 2066.5 -447.5Q2094 -427 2094 -396Q2094 -379 2079 -374Q2022 -350 1971.0 -309.5Q1920 -269 1920 -235Q1920 -224 1925.0 -220.5Q1930 -217 1945 -217Q2040 -217 2109 -304Q2183 -399 2207 -554H1714Q1680 -554 1662.5 -569.5Q1645 -585 1645 -610Q1645 -662 1714 -662H2457Q2491 -662 2508.0 -647.0Q2525 -632 2525.0 -609.5Q2525 -587 2507.5 -570.5Q2490 -554 2457 -554H2343Q2337 -489 2313.0 -383.0Q2289 -277 2276.5 -219.0Q2264 -161 2257.0 -130.5Q2250 -100 2241 -64Q2223 3 2202 3Q2184 3 2155.5 -27.5Q2127 -58 2127 -88Q2127 -94 2150 -198Q2055 -108 1933 -108Q1873 -108 1839.0 -140.0Q1805 -172 1805 -224Q1805 -302 1877 -364Q1803 -360 1775.5 -360.0Q1748 -360 1715.0 -397.5Q1682 -435 1682 -452Q1682 -472 1706 -472Q1722 -472 1759.0 -469.0Q1796 -466 1835 -466Z"/><path class="g" d="M2399 -662H2750Q2784 -662 2801.0 -647.0Q2818 -632 2818.0 -609.5Q2818 -587 2800.5 -570.5Q2783 -554 2750 -554H2637Q2631 -489 2607.0 -383.0Q2583 -277 2570.5 -219.0Q2558 -161 2551.0 -130.5Q2544 -100 2535 -64Q2517 3 2496 3Q2478 3 2449.5 -27.5Q2421 -58 2421 -88Q2421 -97 2429 -130Q2459 -265 2464 -306Q2475 -385 2501 -554H2399Q2365 -554 2347.5 -569.5Q2330 -585 2330 -610Q2330 -662 2399 -662Z"/></g>
+      <path class="sw" d="M 30 140 C 420 300 1500 290 2150 150 C 2560 60 2860 130 2760 250 C 2690 330 2500 300 2540 200"/>
+      <path class="sw sw2" d="M 2790 -930 C 2930 -960 3040 -860 2960 -780 C 2905 -730 2830 -770 2865 -840"/>
+    </svg></h1>
+    <div class="deck">Seven flowers we grew up around, planted in one lawn.</div>
+    <hr>
+    <p class="body">Walk the paths at your own pace, or send the drone up. The hibiscus opens at dawn and is spent by evening. Raat ki rani waits for dark, then the moths come. The sunflowers turn while they are young and settle facing east once they have made up their minds. It rains when it rains where you are.</p>
+    <div class="flowers">Hibiscus · Jacob’s lily · Raat ki rani · Lilies · Sunflowers · White and black roses · Leaf rosettes</div>
+    <div class="enter">
+      <button data-m="drone" disabled>Explore the garden <i>→</i></button>
+      <span class="load" id="introMsg">growing the garden</span>
+    </div>
+    <div class="foot">Best in landscape on a phone. The sky keeps your local time.</div>
     <div class="bar"><i id="introBar"></i></div>
-    <div class="foot">Live sky follows your clock · rain, sunrise and night are real · runs best in landscape on phones</div>
   </div>
 </div>
 <div id="hud">
   <div id="title" class="panel">
-    <h1>Minions Garden</h1>
+    <h1>Minion <span class="hi">बगीचा</span></h1>
     <p>seven flowers, one wild lawn</p>
   </div>
   <div id="modes" class="panel">
@@ -338,6 +361,29 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+// title choreography: letters rise, the Hindi word inks itself stroke by
+// stroke, fills with gold, then the swashes finish it. Without GSAP the
+// title simply shows (the CSS default state is the finished one).
+addEventListener('DOMContentLoaded', () => {
+  if (!window.gsap) { document.querySelector('.hiw').classList.add('ready'); return; }
+  const svg = document.querySelector('.hiw');
+  const glyphs = [...svg.querySelectorAll('.g')], sw = [...svg.querySelectorAll('.sw')];
+  const prep = p => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; return L; };
+  glyphs.forEach(prep); sw.forEach(prep);
+  const tl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: .35 });
+  tl.from('#intro .eyebrow', { opacity: 0, y: 8, duration: .6 })
+    .from('#intro h1 .en b', { opacity: 0, y: 26, rotateX: -40, duration: .7, stagger: .06, ease: 'power3.out' }, '-=.3')
+    .to(glyphs, { strokeDashoffset: 0, duration: 1.1, stagger: .28, ease: 'power1.inOut' }, '-=.2')
+    .to(glyphs, { fillOpacity: 1, duration: .6, stagger: .12 }, '-=.9')
+    .to(sw, { strokeDashoffset: 0, duration: .9, stagger: .25, ease: 'power2.inOut' }, '-=.4')
+    .from('#intro .deck', { opacity: 0, y: 10, duration: .7 }, '-=.6')
+    .from('#intro hr, #intro .body, #intro .flowers, #intro .enter, #intro .foot',
+          { opacity: 0, y: 12, duration: .6, stagger: .08 }, '-=.5')
+    .to(svg, { filter: 'drop-shadow(0 0 14px rgba(247,200,38,.55))', duration: 1.6, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+});
+</script>
 <script type="importmap">
 { "imports": {
   "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
@@ -2414,7 +2460,7 @@ for (const sp of SPECIES) {
 console.log('garden:', SPECIES.map(s => s.name + ':' + s.heads.count).join(' '));
 window.TD = tulipData;                 // debug: instance list
 document.getElementById('introBar').style.width = '70%';
-document.getElementById('introMsg').textContent = 'flowers planted · loading the walker…';
+document.getElementById('introMsg').textContent = 'planting';
 
 
 // ---------- walking character: articulated 3D girl ----------
@@ -2996,7 +3042,7 @@ document.getElementById('mHands').onclick = () => enableHands();
 // ---------- start screen ----------
 function introReady() {
   document.getElementById('introBar').style.width = '100%';
-  document.getElementById('introMsg').textContent = 'ready';
+  document.getElementById('introMsg').textContent = '';
   document.querySelectorAll('#intro .enter button').forEach(b => b.disabled = false);
 }
 document.querySelectorAll('#intro .enter button').forEach(b => b.addEventListener('click', () => {
