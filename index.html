@@ -84,6 +84,12 @@
   #skybar .chips { display: none; }
   #skybar.open .chips { display: flex; }
   #wicon { cursor: pointer; }
+  #fsBtn { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--edge);
+    background: var(--glass); color: var(--ink); font-size: 1.15rem; cursor: pointer;
+    backdrop-filter: blur(14px); display: none; }
+  #fsBtn.can { display: block; }
+  body.fs #fsBtn { background: var(--accent); }
+  body.mobile #fsBtn { width: 34px; height: 34px; font-size: .95rem; }
   #skybar.open #wicon { box-shadow: 0 0 0 2px var(--accent); }
   #wicon { width: 46px; height: 46px; border-radius: 50%;
     background: var(--glass); border: 1px solid var(--edge);
@@ -183,7 +189,8 @@
   @media (max-height: 460px) {   /* phone landscape; rules are scoped by body.mobile */
     body.mobile #modes { top: 10px; left: auto; right: 10px; }
     body.mobile #skybar { top: 50px; }
-    body.mobile #hint { bottom: 8px; left: 50%; }
+    body.mobile #hint { bottom: auto; top: 10px; left: 50%; max-width: 46vw; }
+    body.mobile #title { top: 6px; }
     body.mobile #handPanel { bottom: 60px; }
     body.mobile #stick { width: 100px; height: 100px; bottom: 12px; }
     body.mobile #alt { bottom: 12px; }
@@ -217,6 +224,7 @@
   </div>
   <div id="skybar" class="panel">
     <div id="wicon"></div>
+    <button id="fsBtn" title="Full screen">⛶</button>
     <div class="chips" id="timeChips">
       <button data-t="live" class="on">Live</button>
       <button data-t="6.6">Sunrise</button>
@@ -276,7 +284,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const scene = new THREE.Scene();
 // phones + tablets: coarse pointer, or a narrow window. Drives instance
 // budgets, DPR cap, shadows, and which HUD (touch stick vs WASD) shows.
-const MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
+let MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
 if (MOBILE) document.body.classList.add('mobile');
 window.MOBILE = MOBILE;
 scene.fog = new THREE.Fog(0xcfe6f5, 430, 1500);
@@ -3176,6 +3184,14 @@ composer.addPass(new OutputPass());
 function fitViewport() {
   const w = innerWidth, h = innerHeight;
   if (!w || !h) return;
+  // a page opened wide then shrunk (or rotated) must switch HUD + DPR too
+  const m = matchMedia('(pointer: coarse)').matches || w < 820;
+  if (m !== MOBILE) {
+    MOBILE = window.MOBILE = m;
+    document.body.classList.toggle('mobile', m);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, m ? 1.0 : 1.25));
+    setMode(mode);
+  }
   camera.aspect = w / h;
   camera.zoom = MOBILE && w < h ? 0.78 : 1;
   camera.updateProjectionMatrix();
@@ -3191,6 +3207,31 @@ if (window.visualViewport) visualViewport.addEventListener('resize', fitViewport
 if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(fitViewport, 150));
 fitViewport();
 window.CAM = camera;                   // debug handle
+{ // full screen: one tap in, the same button turns into a cross to leave.
+  // iOS Safari has no element fullscreen, so the button hides itself there.
+  const el = document.documentElement, b = document.getElementById('fsBtn');
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) b.classList.add('can');
+  const inFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const paint = () => {
+    document.body.classList.toggle('fs', inFs());
+    b.textContent = inFs() ? '✕' : '⛶';
+    b.title = inFs() ? 'Exit full screen' : 'Full screen';
+    setTimeout(fitViewport, 100); setTimeout(fitViewport, 400);
+  };
+  b.addEventListener('click', async () => {
+    try {
+      if (inFs()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else {
+        await req.call(el);
+        if (MOBILE && screen.orientation && screen.orientation.lock)
+          screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch {}
+  });
+  document.addEventListener('fullscreenchange', paint);
+  document.addEventListener('webkitfullscreenchange', paint);
+}
 window.DBG = { dronePos, look: (y, p) => { yaw = y; pitch = p; } };   // debug: teleport free cam
 if (MOBILE && innerWidth < innerHeight) {
   const r = document.getElementById('rotHint');
