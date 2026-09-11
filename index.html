@@ -500,7 +500,7 @@
         <li><b>Hands</b>: allow the camera, then pinch and drag to steer, pull toward you to fly forward, push away to reverse, roll the wrist to bank, two pinches for a steering wheel, thumbs up for turbo, fist to stop.</li></ul>
     <h3>Questions people ask</h3>
     <h4>What is Minion Bageecha?</h4><p>Minion Bageecha is a free, browser-based 3D interactive garden. Seven flowers grow in beds around a sunflower plaza: hibiscus, Jacob’s lily, raat ki rani, lilies, sunflowers, white and black roses, and leaf rosettes. It runs on WebGL in Chrome, Safari, Firefox and Edge, on desktop and phones, with nothing to install.</p><h4>How do I move around the garden?</h4><p>Three ways. Watch the cinematic drone reel; fly the drone yourself (drag to look, WASD or the on-screen stick to move, Q and E or the arrow buttons for altitude); or walk as a third-person character (WASD or the stick, hold shift or push the stick to its edge to run).</p><h4>How does hand-gesture control work?</h4><p>Tap Hands and allow the camera. Pinch and drag to steer, pull a pinched hand toward you to fly forward and push it away to reverse, roll your wrist to bank, hold two pinches like a steering wheel to turn and pitch, give a thumbs up for turbo, and make a fist to stop. Tracking runs in the browser with MediaPipe; no video leaves your device.</p><h4>Does it work on a phone?</h4><p>Yes. Phones get an on-screen stick and altitude buttons, lighter scenery and adaptive resolution so it stays smooth. Landscape works best.</p><h4>Why does the light keep changing?</h4><p>The sky follows your local clock: sunrise, noon, sunset and night are real. The sun icon opens presets so you can jump to any time of day or switch on rain.</p><h4>Do the flowers behave like real ones?</h4><p>As far as a procedural garden can. Hibiscus blooms open in the morning and fold by evening, since a real hibiscus flower lasts one day. Raat ki rani opens after dark and glows, and moths visit it at night. Young sunflowers track the sun through the day while mature heads stay facing east, which is what real sunflowers do.</p><h4>Who made Minion Bageecha?</h4><p>Aryan Singh built it as a personal project with Three.js, MediaPipe and GSAP. The flowers, trees, butterflies, birds and weather are all procedural; there is no game engine and no downloaded models apart from the walking character.</p>
-    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser. <span id="build">build 2026-09-11 20:25 IST</span></p>
+    <p class="made">Made by Aryan Singh with Three.js, MediaPipe and GSAP. Everything you see is procedural and rendered live in your browser. <span id="build">build 2026-09-11 20:46 IST</span></p>
   </article>
 </section>
 <div id="hud">
@@ -2165,7 +2165,8 @@ const tulipData = [];      // kept name: pluck, butterflies, bouquet all use it
 function whorl(G, k, opts) {
   // one ring of petals into geometry arrays G = {pos, col, idx, base}
   const { NU = 4, NV = 3, len = 1, halfW = 0.3, spread = 60, curl = 0,
-          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0, tip = 1, jit = 0 } = opts;
+          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0, tip = 1, jit = 0,
+          wexp = 0.72 } = opts;
   const sp = spread * Math.PI / 180;
   for (let p = 0; p < k; p++) {
     // jit: no two petals quite alike (length, angle, lift), hashed per petal
@@ -2178,7 +2179,7 @@ function whorl(G, k, opts) {
     for (let iu = 0; iu <= NU; iu++) {
       const u = iu / NU;
       // tip < 1 keeps width at the end: oblong ligules instead of needles
-      const w = Math.pow(Math.sin(Math.PI * Math.min(u * 1.12, tip)), 0.72);
+      const w = Math.pow(Math.sin(Math.PI * Math.min(u * 1.12, tip)), wexp);
       const r = Math.sin(sp) * lenP * u;
       let y = y0 + Math.cos(sp) * lenP * u + curlP * u * u * lenP;
       for (let iv = 0; iv <= NV; iv++) {
@@ -2387,9 +2388,9 @@ function sunflowerG() {
   const G = newG();
   // bracts peeking between the petals
   // receptacle + phyllaries: the green back you see when a head nods away
-  disc(G, -0.06, 0.43, 18, -0.07, [0.20, 0.34, 0.14], [0.26, 0.42, 0.18]);
-  whorl(G, 14, { len: 0.30, halfW: 0.08, spread: 104, curl: 0.03, y0: -0.05,
-                 shade0: 0.7, rgb: [0.24, 0.40, 0.17], NU: 2, NV: 2 });
+  disc(G, -0.05, 0.31, 18, -0.05, [0.30, 0.40, 0.16], [0.44, 0.50, 0.20]);
+  whorl(G, 11, { len: 0.20, halfW: 0.07, spread: 108, curl: 0.03, y0: -0.04,
+                 shade0: 0.7, rgb: [0.30, 0.44, 0.18], NU: 2, NV: 2 });
   // ray florets: SHORT, WIDE, tightly overlapping — the disc is roughly half
   // the head's diameter on a real sunflower, and the petals are ovals, not
   // needles. Two offset rows give the dense fringe.
@@ -2397,12 +2398,13 @@ function sunflowerG() {
   // outer row flatter and paler at the tips, the inner row lifted a touch
   // ~30 rays, each about as long as the disc radius, with clear gaps: the
   // eye needs to count petals or the ring reads as a solid yellow band
-  whorl(G, 22, { len: 0.72, halfW: 0.12, spread: 92, curl: -0.03, cup: 0.03, tip: 0.95, jit: 0.05,
-                 y0: 0.0, shade0: 0.76, rgb: [1.0, 0.80, 0.10], NU: 5, NV: 3 });
+  whorl(G, 15, { len: 0.72, halfW: 0.105, spread: 88, curl: -0.02, cup: 0.05, tip: 0.88,
+                 jit: 0.03, wexp: 0.34, y0: 0.0, shade0: 0.86,
+                 rgb: [0.93, 0.66, 0.05], NU: 5, NV: 3 });
   // inner row stays flat at y 0 so it never pokes up through the disc rim
-  whorl(G, 16, { len: 0.62, halfW: 0.11, spread: 90, curl: -0.02, cup: 0.03, tip: 0.95, jit: 0.05,
-                 y0: 0.0, az0: 0.143, shade0: 0.82,
-                 rgb: [1.0, 0.72, 0.06], NU: 5, NV: 3 });
+  whorl(G, 13, { len: 0.62, halfW: 0.10, spread: 84, curl: -0.01, cup: 0.05, tip: 0.88,
+                 jit: 0.03, wexp: 0.34, y0: 0.0, az0: 0.209, shade0: 0.90,
+                 rgb: [0.90, 0.60, 0.04], NU: 5, NV: 3 });
   // disc: dome in three floret rings
   {
     const seg = 28, start = G.base;
@@ -2411,21 +2413,23 @@ function sunflowerG() {
     // below the rays on purpose: noon sun + specular lifts them 3-4x and a
     // mid-brown reads as gold (that was v3's problem).
     const RING = [
-      [0.00, 0.08, [0.16, 0.09, 0.04]],   // dark centre
-      [0.10, 0.07, [0.20, 0.11, 0.04]],
-      [0.18, 0.055, [0.28, 0.16, 0.05]],
-      [0.25, 0.04, [0.50, 0.32, 0.07]],   // florets opening: the gold ring starts here
-      [0.31, 0.025, [0.78, 0.55, 0.10]],
-      [0.36, 0.015, [0.95, 0.72, 0.14]],  // pollen rim, bright
+      [0.00, 0.055, [0.12, 0.16, 0.05]],  // unopened florets: a small green core
+      [0.055, 0.052, [0.13, 0.14, 0.04]],
+      [0.070, 0.050, [0.15, 0.09, 0.03]], // hard edge: the florets have opened
+      [0.13, 0.042, [0.30, 0.15, 0.04]],
+      [0.19, 0.030, [0.48, 0.25, 0.05]],  // wide warm rust band of open florets
+      [0.25, 0.018, [0.68, 0.43, 0.08]],
+      [0.285, 0.010, [0.86, 0.62, 0.12]], // pollen rim, one thin bright ring
+      [0.30, 0.008, [0.66, 0.44, 0.09]],  // florets tuck under the petals
     ];
-    G.pos.push(0, 0.10, 0); G.col.push(0.13, 0.07, 0.03);
+    G.pos.push(0, 0.10, 0); G.col.push(0.11, 0.15, 0.05);
     for (const [rr, dy, c] of RING)
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
         // parastichy texture: golden-angle phase per ring so the dark/light
         // florets line up into the familiar crossing spirals
         const ph = (i / seg) * 6.2832 + Math.round(rr * 40) * 2.39996;
-        const k = 0.90 + 0.16 * (0.5 + 0.5 * Math.sin(ph * 5.0));
+        const k = 0.93 + 0.12 * (0.5 + 0.5 * Math.sin(ph * 7.0));
         G.pos.push(Math.cos(a) * rr, 0.04 + dy, Math.sin(a) * rr);
         G.col.push(c[0] * k, c[1] * k, c[2] * k);
       }
@@ -2438,8 +2442,8 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.scale(0.62, 0.62, 0.62);          // head diameter ~25% of plant height (garden variety); disc is half the head
-  g.rotateX(-1.25);                    // face ~18 deg above horizontal (ornamental habit), so it reads from a drone and from eye level; per-plant nod adds +-12 deg
+  g.scale(0.74, 0.74, 0.74);          // head ~23% of plant height; disc is ~48% of the head, as in the reference
+  g.rotateX(-0.88);                    // face ~40 deg above horizontal: a drone sees faces from any side
   g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
 }
@@ -2483,7 +2487,7 @@ const SPECIES = [
   { name: 'lily', bloom: lilyG(), stem: stemG(2.6, 0.06, 3, 1.0),
     top: 2.8, cap: 8000, s: [0.9, 1.5],
     col: tint([0xffffff, 0xf5a8c8, 0xf0783a, 0xf5d848, 0xd84868]) },
-  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.05),
+  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.042),
     top: 3.9, cap: 2000, s: [1.45, 1.72],   // one sowing, one height: a flat canopy of heads from the air
     col: tint([0xfff2c8, 0xffe9b0]) },
   { name: 'rose', bloom: roseG(), stem: stemG(1.9, 0.05, 3, 0.55),
@@ -2671,7 +2675,7 @@ for (const sp of SPECIES) {
   tulipWindify(sp.stems.material);
 }
 console.log('garden:', SPECIES.map(s => s.name + ':' + s.heads.count).join(' '));
-console.log('build 2026-09-11 20:25 IST');
+console.log('build 2026-09-11 20:46 IST');
 window.TD = tulipData;                 // debug: instance list
 document.getElementById('introBar').style.width = '70%';
 document.getElementById('introMsg').textContent = 'planting';
