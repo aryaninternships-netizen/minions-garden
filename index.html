@@ -2437,8 +2437,8 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.scale(0.58, 0.58, 0.58);          // head diameter ~23% of plant height (garden cultivars)
-  g.rotateX(-1.62);                    // face ~3 deg below horizontal; per-plant nod adds +-12 deg
+  g.scale(0.72, 0.72, 0.72);          // head diameter ~28% of plant height: big garden cultivar, reads from a drone
+  g.rotateX(-1.75);                    // face ~10 deg below horizontal; per-plant nod adds +-12 deg
   g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
 }
@@ -2482,7 +2482,7 @@ const SPECIES = [
   { name: 'lily', bloom: lilyG(), stem: stemG(2.6, 0.06, 3, 1.0),
     top: 2.8, cap: 8000, s: [0.9, 1.5],
     col: tint([0xffffff, 0xf5a8c8, 0xf0783a, 0xf5d848, 0xd84868]) },
-  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.042),
+  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.05),
     top: 3.9, cap: 1600, s: [1.2, 1.9],
     col: tint([0xfff2c8, 0xffe9b0]) },
   { name: 'rose', bloom: roseG(), stem: stemG(1.9, 0.05, 3, 0.55),
@@ -2543,7 +2543,7 @@ function plantOne(sp, x, z) {
 {
   const SEC = [0, 1, 3, 5, 6];         // hibiscus, jacob, lily, rose, ...wheel
   // sunflower plaza ring, all facing outward
-  for (let i = 0; i < 1000; i++) {         // thinner: each plant should read on its own
+  for (let i = 0; i < 1400; i++) {         // dense enough to read as one gold ring from the air
     const a = Math.random() * 6.2832, r = 24 + Math.random() * 17;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (onPath(x, z)) continue;
