@@ -175,6 +175,9 @@
   #intro .bar { height: 3px; width: 200px; margin: 8px auto 0; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
   #intro .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .5s; }
   #intro .foot { margin-top: 26px; font-size: .66rem; opacity: .45; }
+  #intro .sister { margin-top: 22px; font-size: .74rem; opacity: .8; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  #intro .sister a { color: #ffd9a8; text-decoration: none; border-bottom: 1px solid rgba(255,217,168,.45); }
+  #intro .sister a:hover { border-bottom-color: #ffd9a8; }
   body.intro #hud { opacity: 0; pointer-events: none; }
   #hud { transition: opacity .6s; }
   @media (max-width: 560px) {
@@ -273,6 +276,7 @@
     </div>
     <div class="load" id="introMsg">growing the garden…</div>
     <div class="bar"><i id="introBar"></i></div>
+    <div class="sister">more gardens · <a href="https://khushi-garden.vercel.app">Khushi Garden</a><a href="https://tulips-swart.vercel.app">Tulipa Garden</a></div>
     <div class="foot">Live sky follows your clock · rain, sunrise and night are real · runs best in landscape on phones</div>
   </div>
 </div>
