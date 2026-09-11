@@ -1975,18 +1975,22 @@ const tulipData = [];      // kept name: pluck, butterflies, bouquet all use it
 function whorl(G, k, opts) {
   // one ring of petals into geometry arrays G = {pos, col, idx, base}
   const { NU = 4, NV = 3, len = 1, halfW = 0.3, spread = 60, curl = 0,
-          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0, tip = 1 } = opts;
+          cup = 0.12, y0 = 0, az0 = 0, shade0 = 0.6, tilt = 0, tip = 1, jit = 0 } = opts;
   const sp = spread * Math.PI / 180;
   for (let p = 0; p < k; p++) {
-    const az = az0 + (p / k) * Math.PI * 2;
+    // jit: no two petals quite alike (length, angle, lift), hashed per petal
+    const j1 = Math.sin(p * 12.9898 + k * 78.233) * 43758.5453, j2 = Math.sin(p * 39.3468 + k * 11.135) * 24634.6345;
+    const r1 = j1 - Math.floor(j1) - 0.5, r2 = j2 - Math.floor(j2) - 0.5;
+    const az = az0 + (p / k) * Math.PI * 2 + r1 * jit * 0.6;
+    const lenP = len * (1 + r2 * jit * 1.6), curlP = curl + r1 * jit * 0.5;
     const ca = Math.cos(az), sa = Math.sin(az);
     const start = G.base;
     for (let iu = 0; iu <= NU; iu++) {
       const u = iu / NU;
       // tip < 1 keeps width at the end: oblong ligules instead of needles
       const w = Math.pow(Math.sin(Math.PI * Math.min(u * 1.12, tip)), 0.72);
-      const r = Math.sin(sp) * len * u;
-      let y = y0 + Math.cos(sp) * len * u + curl * u * u * len;
+      const r = Math.sin(sp) * lenP * u;
+      let y = y0 + Math.cos(sp) * lenP * u + curlP * u * u * lenP;
       for (let iv = 0; iv <= NV; iv++) {
         const v = iv / NV * 2 - 1;
         const lat = v * halfW * w;
@@ -2089,7 +2093,7 @@ function sunStemG(h, r) {
       const rr = r * (1 - ring * 0.18) * (1 + 0.08 * Math.sin(a * 3));   // ridged
       G.pos.push(Math.cos(a) * rr, ring * h * 0.5, Math.sin(a) * rr);
       const m = 0.7 + ring * 0.15;
-      G.col.push(0.13 * m, 0.28 * m, 0.10 * m);
+      G.col.push(0.09 * m, 0.21 * m, 0.07 * m);
     }
   for (let ring = 0; ring < 2; ring++)
     for (let i = 0; i < seg; i++) {
@@ -2102,16 +2106,17 @@ function sunStemG(h, r) {
     const az = l * 2.399 + 0.5;                       // alternate: golden angle
     const f = l / (LEAVES - 1);
     const yb = h * (0.18 + 0.55 * f);
-    const L = 1.15 - 0.55 * f, W = 1.0 - 0.45 * f;    // lower leaves largest
+    const L = 0.85 - 0.40 * f, W = 0.78 - 0.34 * f;   // lower leaves largest
     const droop = 0.42 + 0.25 * f;                    // radians below horizontal
     const ca = Math.cos(az), sa = Math.sin(az);
-    const pet = 0.32 * L;                             // petiole length
-    const NU = 4, NV = 4, s2 = G.base;
+    const pet = 0.34 * L;                             // petiole length
+    const NU = 6, NV = 4, s2 = G.base;
     for (let iu = 0; iu <= NU; iu++) {
       const u = iu / NU;
-      // cordate outline: widest at 30%, notched base, pointed tip
-      const w = W * Math.pow(Math.sin(Math.PI * Math.min(u * 0.9 + 0.1, 1)), 0.6)
-              * (u < 0.12 ? 0.55 + u * 3.7 : 1);
+      // cordate outline: two round lobes at the base (width peaks at ~28%),
+      // then a long taper to an acute tip
+      const w = W * (u < 0.28 ? Math.sin((u / 0.28) * Math.PI * 0.5) * (0.62 + 0.38 * (u / 0.28))
+                                : Math.pow(1 - (u - 0.28) / 0.72, 0.85));
       const d = pet + u * L;
       const rise = -Math.sin(droop) * (u * L) - 0.18 * u * u * L;
       for (let iv = 0; iv <= NV; iv++) {
@@ -2202,11 +2207,12 @@ function sunflowerG() {
   // outer row flatter and paler at the tips, the inner row lifted a touch
   // ~30 rays, each about as long as the disc radius, with clear gaps: the
   // eye needs to count petals or the ring reads as a solid yellow band
-  whorl(G, 17, { len: 0.78, halfW: 0.105, spread: 92, curl: -0.06, cup: 0.02, tip: 0.86,
-                 y0: 0.0, shade0: 0.72, rgb: [1.0, 0.78, 0.10], NU: 4, NV: 3 });
-  whorl(G, 14, { len: 0.68, halfW: 0.095, spread: 85, curl: -0.03, cup: 0.02, tip: 0.86,
-                 y0: 0.03, az0: 0.18, shade0: 0.78,
-                 rgb: [1.0, 0.72, 0.06], NU: 4, NV: 3 });
+  whorl(G, 21, { len: 0.70, halfW: 0.118, spread: 92, curl: -0.09, cup: 0.05, tip: 1, jit: 0.14,
+                 y0: 0.0, shade0: 0.74, rgb: [1.0, 0.78, 0.10], NU: 4, NV: 3 });
+  // inner row stays flat at y 0 so it never pokes up through the disc rim
+  whorl(G, 16, { len: 0.58, halfW: 0.10, spread: 90, curl: -0.04, cup: 0.04, tip: 1, jit: 0.14,
+                 y0: 0.0, az0: 0.15, shade0: 0.80,
+                 rgb: [1.0, 0.71, 0.06], NU: 4, NV: 3 });
   // disc: dome in three floret rings
   {
     const seg = 28, start = G.base;
@@ -2229,7 +2235,7 @@ function sunflowerG() {
         // parastichy texture: golden-angle phase per ring so the dark/light
         // florets line up into the familiar crossing spirals
         const ph = (i / seg) * 6.2832 + Math.round(rr * 40) * 2.39996;
-        const k = 0.78 + 0.34 * (0.5 + 0.5 * Math.sin(ph * 5.0));
+        const k = 0.90 + 0.16 * (0.5 + 0.5 * Math.sin(ph * 5.0));
         G.pos.push(Math.cos(a) * rr, 0.04 + dy, Math.sin(a) * rr);
         G.col.push(c[0] * k, c[1] * k, c[2] * k);
       }
@@ -2242,7 +2248,7 @@ function sunflowerG() {
     G.base += 1 + RING.length * (seg + 1);
   }
   const g = bake(G);
-  g.scale(0.78, 0.78, 0.78);          // head ~20% of plant height (garden cultivars)
+  g.scale(0.58, 0.58, 0.58);          // head diameter ~23% of plant height (garden cultivars)
   g.rotateX(-1.0);                     // nodding ~55 deg below vertical
   g.translate(0, 0.07, -0.12);         // receptacle sits on the stem top, face leans away from it
   return g;
@@ -2287,7 +2293,7 @@ const SPECIES = [
   { name: 'lily', bloom: lilyG(), stem: stemG(2.6, 0.06, 3, 1.0),
     top: 2.8, cap: 8000, s: [0.9, 1.5],
     col: tint([0xffffff, 0xf5a8c8, 0xf0783a, 0xf5d848, 0xd84868]) },
-  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.055),
+  { name: 'sunflower', bloom: sunflowerG(), stem: sunStemG(3.6, 0.042),
     top: 3.9, cap: 1600, s: [1.2, 1.9],
     col: tint([0xfff2c8, 0xffe9b0]) },
   { name: 'rose', bloom: roseG(), stem: stemG(1.9, 0.05, 3, 0.55),
@@ -2451,7 +2457,15 @@ for (const sp of SPECIES) {
     // age: the small plants swing with the sun, the big ones hold east.
     tulipWindify(sp.heads.material, { u: { uSunYaw, uEastYaw }, code: `
        float age = clamp((length(instanceMatrix[0].xyz) - 1.35) / 0.3, 0.0, 1.0);
-       float yawH = mix(uSunYaw, uEastYaw, age);
+       vec4 wp0 = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+       float h1 = fract(sin(dot(wp0.xz, vec2(12.9898, 78.233))) * 43758.5453);
+       float h2 = fract(sin(dot(wp0.xz, vec2(39.3468, 11.135))) * 24634.6345);
+       float yawH = mix(uSunYaw, uEastYaw, age) + (h1 - 0.5) * 0.52;   // no two face quite alike
+       // nod varies per plant, pivoting on the stem top (LIFT + 0.07)
+       transformed.y -= 3.52;
+       float nod = (h2 - 0.5) * 0.42, cn = cos(nod), sn = sin(nod);
+       transformed.yz = mat2(cn, sn, -sn, cn) * transformed.yz;
+       transformed.y += 3.52;
        float cy = cos(yawH), sy = sin(yawH);
        transformed.xz = mat2(cy, -sy, sy, cy) * transformed.xz;` });
   } else if (sp.name === 'hibiscus') {
